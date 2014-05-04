@@ -31,7 +31,9 @@ First find your Sublime Text 2 Packages folder:
     - Linux: ~/.Sublime Text 2/Packages/
 
 If you have Git, you can clone this repo to "/packages-folder/TSQLEasy/"
-
+<pre>
+git clone --recursive git://github.com/tosher/TSQLEasy.git
+</pre>
 or,
 
 Download this repo using the "ZIP" button above, unzip and place the files in "/packages-folder/TSQLEasy/"
