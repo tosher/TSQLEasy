@@ -1,0 +1,23 @@
+{
+    "te_sql_server":
+    {
+        "Main": {
+            "driver": "SQL Server",
+            "server": "127.0.0.1",
+            "server_port": "1433",
+            "username": "",
+            "password": "",
+            "database": "",
+            "autocommit": true
+            }
+    },
+    "te_server_active": "Main",
+    "te_encodings":
+    {
+        "main_profile": "cp1251"
+    },
+    "te_sql_profile": "main_profile",
+    "te_procedure_path": [],
+    "te_result_in_new_tab": true
+}
+

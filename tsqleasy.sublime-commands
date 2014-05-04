@@ -1,0 +1,5 @@
+[
+    { "caption": "TSQL Easy: Get table", "command": "tsql_easy_get_table" },
+    { "caption": "TSQL Easy: Get column", "command": "tsql_easy_get_column" },
+    { "caption": "TSQL Easy: Server select", "command": "tsql_easy_set_active_server" }
+]
