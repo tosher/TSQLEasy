@@ -74,13 +74,14 @@ def te_get_connection():
     server_list = te_get_setting('te_sql_server')
     server = server_list[server_active]['server']
     driver = server_list[server_active]['driver']
-    server_port = server_list[server_active]['server_port']
+    server_port = server_list[server_active]['server_port'] if 'server_port' in server_list[server_active] else '1433'
     username = server_list[server_active]['username']
     password = server_list[server_active]['password']
     database = server_list[server_active]['database']
-    autocommit = server_list[server_active]['autocommit']
+    autocommit = server_list[server_active]['autocommit'] if 'autocommit' in server_list[server_active] else True
+    timeout = server_list[server_active]['timeout'] if 'timeout' in server_list[server_active] else 0
 
-    sqlcon = sqlodbccon.SQLCon(server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs="5", autocommit=autocommit)
+    sqlcon = sqlodbccon.SQLCon(server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs="5", autocommit=autocommit, timeout=timeout)
     return sqlcon
 
 
@@ -119,7 +120,7 @@ def te_get_all_aliases(text):
     words = ('where', 'join', 'order', 'select', 'insert', 'update', 'with', 'group')
     for line in text.split('\n'):
         line = line.strip().strip(',')
-        if line[0:4] == 'from' or ' from' in line:
+        if line.startswith('from') or ' from' in line:
             is_from_section = True
         if is_from_section and any(wo in line for wo in words):
             is_from_section = False
@@ -298,7 +299,10 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         self.source_encodings = te_get_encodings()
         self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         self.sqlcon = te_get_connection()
-        self.sql_query = self.view.substr(self.view.sel()[0])
+        if self.view.sel()[0]:
+            self.sql_query = self.view.substr(self.view.sel()[0])
+        else:
+            self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
         if self.sql_query:
             dt_before = time.time()
             self.sqlcon.dbexec(self.sql_query)
@@ -318,6 +322,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                 new_view.settings().set("word_wrap", False)
                 new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
             else:
+                sublime.active_window().run_command('show_panel', {'panel': 'console', 'toggle': True})
                 print(text)
 
             sublime.status_message('Executed.')
@@ -390,7 +395,28 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         return '%s%s%s' % (res_header, res_body, res_footer)
 
 
-class TsqlEasyOpenProcedureCommand(sublime_plugin.TextCommand):
+class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+        position = self.view.sel()[0].begin()
+        word_cursor = self.view.substr(self.view.word(position)).strip('\n').strip()
+        sqlreq = "exec sp_helptext @objname = ?"
+        sqlcon = te_get_connection()
+        sqlcon.dbexec(sqlreq, [word_cursor])
+        text = ''
+        if sqlcon.sqldataset:
+            text = ''.join([row.Text for row in sqlcon.sqldataset])
+        sqlcon.dbdisconnect()
+        if text:
+            text = text.replace('\r', '')
+            new_view = sublime.active_window().new_file()
+            new_view.set_name(word_cursor)
+            new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+            new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
+
+
+class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
     proc_dirs = []
     filename = ''
     filename_abs_path = ''

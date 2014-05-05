@@ -23,7 +23,7 @@ except (ImportError) as e:
 class SQLCon:
 
     def __init__(self, server='127.0.0.1', driver='SQL Server', serverport="1433", username="",
-                 password="", database="", sleepsecs=5, autocommit=True):
+                 password="", database="", sleepsecs=5, autocommit=True, timeout=0):
         self.driver = driver
         self.server = server
         self.serverport = serverport
@@ -32,6 +32,7 @@ class SQLCon:
         self.database = database
         self.sleepsecs = int(sleepsecs)
         self.autocommit = autocommit
+        self.timeout = timeout
         self.connection_string = self._get_connection_string()
         self.sqlconnection = None
         self.sqlcursor = None
@@ -44,7 +45,7 @@ class SQLCon:
         self.sqlconnection = None
         self.sqlcursor = None
         try:
-            self.sqlconnection = pyodbc.connect(self.connection_string, autocommit=self.autocommit)
+            self.sqlconnection = pyodbc.connect(self.connection_string, autocommit=self.autocommit, timeout=self.timeout)
             if self.autocommit:
                 self.sqlconnection.autocommit = True
             self.sqlcursor = self.sqlconnection.cursor()

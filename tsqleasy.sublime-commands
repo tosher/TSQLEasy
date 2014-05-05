@@ -1,5 +1,8 @@
 [
     { "caption": "TSQL Easy: Get table", "command": "tsql_easy_get_table" },
     { "caption": "TSQL Easy: Get column", "command": "tsql_easy_get_column" },
-    { "caption": "TSQL Easy: Server select", "command": "tsql_easy_set_active_server" }
+    { "caption": "TSQL Easy: Server select", "command": "tsql_easy_set_active_server" },
+    { "caption": "TSQL Easy: Execute", "command": "tsql_easy_exec_sql" },
+    { "caption": "TSQL Easy: Open server object", "command": "tsql_easy_open_server_object" },
+    { "caption": "TSQL Easy: Open local object", "command": "tsql_easy_open_local_object" }
 ]

@@ -10,18 +10,19 @@
 
 ## Install
 
-<del>
 ### Package Control
-
 The easiest way to install this is with [Package Control](http://wbond.net/sublime\_packages/package\_control).
 
- * If you just went and installed Package Control, you probably need to restart Sublime Text 2 before doing this next bit.
+ * If you just went and installed Package Control, you probably need to restart Sublime Text before doing this next bit.
  * Bring up the Command Palette (Command+Shift+p on OS X, Control+Shift+p on Linux/Windows).
+ * **Temporary!** Select "Package Control: Add Repository" and add
+ <pre>
+ https://github.com/tosher/TSQLEasy.git
+ </pre>
  * Select "Package Control: Install Package" (it'll take a few seconds)
  * Select TSQL Easy when the list appears.
 
-Package Control will automatically keep Mediawiker up to date with the latest version.
-</del>
+Package Control will automatically keep **TSQL Easy** up to date with the latest version.
 
 ### Other methods
 First find your Sublime Text 2 Packages folder:
