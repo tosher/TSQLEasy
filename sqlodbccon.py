@@ -86,6 +86,12 @@ class SQLCon:
             except pyodbc.OperationalError as e:
                 print('OperationalError exception: %s' % e)
                 self.sqldataset = []
+            except pyodbc.ProgrammingError as e:
+                if str(e).startswith('No results'):
+                    pass
+                else:
+                    print('ProgrammingError exception: %s' % e)
+                self.sqldataset = []
             except Exception as e:
                 print('Unknown exception: %s' % e)
                 self.sqldataset = []

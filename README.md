@@ -9,7 +9,7 @@ Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 * Completions of table names from server.
 * Completions of table columns from server.
 * Possibility to receive code of procedure, functions by text under cursor.
-* Possibility to open local code of procedures (functions, etc.) with the same name (**ProcedureName** -> **ProcedureName.sql**) by text under cursor.
+* Possibility to open local files with the same name as stored procedure (function, etc.): **ProcedureName** -> **ProcedureName.sql**.
 * Improved syntax highlighting for TSQL.
 
 **Warning!** Require server connection for work or use fake server with empty **driver** value for work offline without completions, etc.

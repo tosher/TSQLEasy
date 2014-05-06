@@ -7,6 +7,7 @@ import hashlib
 import time
 import os.path
 from datetime import datetime
+import tempfile
 import sublime
 import sublime_plugin
 
@@ -19,6 +20,8 @@ else:
 # TODO: Get procedures (functions) list (with params)
 # TODO: Completions to TSQL operators
 # TODO: Processes, locks, etc..
+# TODO: /r back before send proc to server
+# TODO: special file instead of -- tsql?
 
 
 class SQLAlias():
@@ -252,14 +255,15 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
             te_reload_aliases_from_file()
 
     def check_tab(self, view):
-        self._get_header(view)
+        # self._get_header(view)
         title = te_get_title()
-        if (title and title.endswith('.sql')) or self.first_line_text.startswith('--tsql'):
+        # if (title and title.endswith('.sql')) or self.first_line_text.startswith('--tsql'):
+        if title and title.endswith('.sql'):
             return True
         return False
 
-    def _get_header(self, view):
-        self.first_line_text = view.substr(view.line(0)).replace(' ', '')
+    # def _get_header(self, view):
+    #     self.first_line_text = view.substr(view.line(0)).replace(' ', '')
 
     def on_query_completions(self, view, prefix, locations):
         #auto_completions = [view.extract_completions(prefix)]
@@ -286,24 +290,27 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         self.source_encodings = te_get_encodings()
         #self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         self.sqlcon = te_get_connection()
+        self.view.set_line_endings('windows')
         if self.view.sel()[0]:
             self.sql_query = self.view.substr(self.view.sel()[0])
         else:
             self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
         if self.sqlcon is not None and self.sql_query:
-            dt_before = time.time()
-            self.sqlcon.dbexec(self.sql_query)
-            dt_after = time.time()
-            timedelta = dt_after - dt_before
-            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            text = self.get_pretty(timedelta, current_time)
+            # queries = re.split("\n--go\n", self.sql_query)
+            queries = self.sql_query.split('\n--go\n')
+            text = ''
+            for query in queries:
+                if query:
+                    dt_before = time.time()
+                    self.sqlcon.dbexec(query)
+                    dt_after = time.time()
+                    timedelta = dt_after - dt_before
+                    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    text += self.get_pretty(timedelta, current_time)
             self.sqlcon.dbdisconnect()
 
             result_in_new_tab = te_get_setting('te_result_in_new_tab')
             if result_in_new_tab:
-                # sublime.active_window().run_command('new_pane', {'move': True})
-                # sublime.active_window().run_command('set_layout', {"cols": [0.0, 1.0], "rows": [0.0, 0.6, 1.0], "cells": [[0, 0, 1, 1], [0, 1, 1, 2]]})
-                # sublime.active_window().focus_group(1)
                 new_view = sublime.active_window().new_file()
                 new_view.set_name('TSQLEasy result (%s)' % current_time)
                 new_view.settings().set("word_wrap", False)
@@ -372,7 +379,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
             res_body = self.table_print(data_rows, title_row)
         else:
-            res_body = 'Result without dataset\n'
+            res_body = 'Completed: Result without dataset\n'
         if show_request_in_result:
             res_header = ('------ SQL Request ------\n'
                           '%s\n'
@@ -383,6 +390,17 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                       'Execution time: %s secs | '
                       'Received at: %s' % (len(data_rows), round(timedelta, 3), received_time))
         return '%s%s%s' % (res_header, res_body, res_footer)
+
+
+class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        prefix = 'Console_'
+        tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
+        new_view = sublime.active_window().open_file(tf.name)
+        new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+        new_view.set_line_endings('linux')
+        tf.close()
 
 
 class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
@@ -400,11 +418,13 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
                 text = ''.join([row.Text for row in sqlcon.sqldataset])
             sqlcon.dbdisconnect()
             if text:
-                text = text.replace('\r', '')
-                new_view = sublime.active_window().new_file()
-                new_view.set_name(word_cursor)
-                # new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
-                new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
+                prefix = '%s_tmp_' % word_cursor
+                tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
+                tf.write(text)
+                new_view = sublime.active_window().open_file(tf.name)
+                new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+                new_view.set_line_endings('linux')
+                tf.close()
 
 
 class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
