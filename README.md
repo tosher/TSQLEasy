@@ -1,12 +1,24 @@
 # Sublime Text plugin: TSQL Easy
 
-[TSQL Easy](https://github.com/tosher/TSQLEasy) is a plugin for Sublime Text editor (ver. 2/3) that adds possibility to read/write/execute sql requests to Microsoft SQL Server through the use of pyodbc library.
+[TSQL Easy](https://github.com/tosher/TSQLEasy) is a plugin for Sublime Text editor (ver. 2/3) that adds possibility to read/write/execute sql requests to Microsoft SQL Server and some IDE-like functionality.
+Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 
 ## Main features
-* Execute the selected text as sql request to SQL Server.
-* Get table list from SQL server
-* Get table columns list from SQL server
+* Manage connections to SQL Servers.
+* Execute sql requests on SQL Server.
+* Completions of table names from server.
+* Completions of table columns from server.
+* Possibility to receive code of procedure, functions by text under cursor.
+* Possibility to open local code of procedures (functions, etc.) with the same name (**ProcedureName** -> **ProcedureName.sql**) by text under cursor.
 * Improved syntax highlighting for TSQL.
+
+**Warning!** Require server connection for work or use fake server with empty **driver** value for work offline without completions, etc.
+
+### PyODBC
+Now, package includes pyODBC versions:
+* Windows: ST2/3 x32/x64
+* Linux: ST2/3 x64
+* Pull request are welcome! :)
 
 ## Install
 
