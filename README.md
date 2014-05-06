@@ -15,7 +15,7 @@ Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 **Warning!** Require server connection for work or use fake server with empty **driver** value for work offline without completions, etc.
 
 ### PyODBC
-Now, package includes pyODBC versions:
+Now, package includes pyODBC (3.0.7) binaries:
 * Windows: ST2/3 x32/x64
 * Linux: ST2/3 x64
 * Pull requests are welcome! :)
