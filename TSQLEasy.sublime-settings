@@ -9,6 +9,9 @@
             "password": "",
             "database": "",
             "autocommit": true
+            },
+        "Offline": {
+            "driver": ""
             }
     },
     "te_server_active": "Main",

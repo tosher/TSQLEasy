@@ -1,5 +1,4 @@
 [
-    { "keys": ["ctrl+alt+space"], "command": "tsql_easy_auto" },
     { "keys": ["f5"], "command": "tsql_easy_exec_sql" },
     { "keys": ["ctrl+alt+f11"], "command": "tsql_easy_set_active_server" }
 ]
