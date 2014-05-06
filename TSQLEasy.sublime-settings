@@ -21,6 +21,7 @@
     },
     "te_sql_profile": "main_profile",
     "te_procedure_path": [],
-    "te_result_in_new_tab": true
+    "te_result_in_new_tab": true,
+    "te_show_request_in_result": false
 }
 

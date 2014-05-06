@@ -18,6 +18,7 @@ else:
 
 # TODO: Get procedures (functions) list (with params)
 # TODO: Completions to TSQL operators
+# TODO: Processes, locks, etc..
 
 
 class SQLAlias():
@@ -354,8 +355,10 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
         title_row = []
         data_rows = []
+        res_header = '\n------ SQL Result ------\n\n'
         res_body = ''
         column_names = False
+        show_request_in_result = te_get_setting('te_show_request_in_result', True)
         if self.sqlcon.sqldataset:
             for row in self.sqlcon.sqldataset:
                 row_as_dict = {}
@@ -370,13 +373,14 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             res_body = self.table_print(data_rows, title_row)
         else:
             res_body = 'Result without dataset\n'
-        res_header = ('------ SQL Request ------\n'
-                      '%s\n'
-                      '-------------------------\n\n' % (self.sql_query))
+        if show_request_in_result:
+            res_header = ('------ SQL Request ------\n'
+                          '%s\n'
+                          '------ SQL Result -------\n\n' % (self.sql_query))
 
         res_footer = ('\n------ SQL result stats ------\n'
-                      'Records count: %s\n'
-                      'Execution time: %s secs\n'
+                      'Records count: %s | '
+                      'Execution time: %s secs | '
                       'Received at: %s' % (len(data_rows), round(timedelta, 3), received_time))
         return '%s%s%s' % (res_header, res_body, res_footer)
 
