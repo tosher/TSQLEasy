@@ -18,7 +18,7 @@ Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 Now, package includes pyODBC versions:
 * Windows: ST2/3 x32/x64
 * Linux: ST2/3 x64
-* Pull request are welcome! :)
+* Pull requests are welcome! :)
 
 ## Install
 
