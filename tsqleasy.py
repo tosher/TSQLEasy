@@ -20,8 +20,6 @@ else:
 # TODO: Get procedures (functions) list (with params)
 # TODO: Completions to TSQL operators
 # TODO: Processes, locks, etc..
-# TODO: /r back before send proc to server
-# TODO: special file instead of -- tsql?
 
 
 class SQLAlias():
@@ -255,15 +253,10 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
             te_reload_aliases_from_file()
 
     def check_tab(self, view):
-        # self._get_header(view)
         title = te_get_title()
-        # if (title and title.endswith('.sql')) or self.first_line_text.startswith('--tsql'):
         if title and title.endswith('.sql'):
             return True
         return False
-
-    # def _get_header(self, view):
-    #     self.first_line_text = view.substr(view.line(0)).replace(' ', '')
 
     def on_query_completions(self, view, prefix, locations):
         #auto_completions = [view.extract_completions(prefix)]
@@ -399,7 +392,8 @@ class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
         tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
         new_view = sublime.active_window().open_file(tf.name)
         new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
-        new_view.set_line_endings('linux')
+        new_view.settings().set("word_wrap", False)
+        new_view.set_line_endings('unix')
         tf.close()
 
 
@@ -420,11 +414,15 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
             if text:
                 prefix = '%s_tmp_' % word_cursor
                 tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
-                tf.write(text)
+                tf.write(text.replace('\r', ''))
+                tf.seek(0)
                 new_view = sublime.active_window().open_file(tf.name)
                 new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
-                new_view.set_line_endings('linux')
+                new_view.set_line_endings('unix')
+                # new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
                 tf.close()
+        else:
+            sublime.status_message('No connection to SQL server')
 
 
 class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
@@ -466,3 +464,10 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
     def get_proc(self, path):
         # sublime.active_window().active_view().set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         sublime.active_window().open_file(self.filename_abs_path)
+
+
+class TsqlEasyLoad(sublime_plugin.EventListener):
+    def on_activated(self, view):
+        if 'TSQL' in view.settings().get('syntax'):
+            view.settings().set('tsqleasy_is_here', True)
+
