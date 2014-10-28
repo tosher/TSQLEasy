@@ -244,12 +244,12 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
 
     def on_load(self, view):
         if self.check_tab(view):
-            view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+            # view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
             te_reload_aliases_from_file()
 
     def on_activated(self, view):
         if self.check_tab(view):
-            view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+            # view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
             te_reload_aliases_from_file()
 
     def check_tab(self, view):
@@ -391,7 +391,7 @@ class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
         prefix = 'Console_'
         tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
         new_view = sublime.active_window().open_file(tf.name)
-        new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+        # new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         new_view.settings().set("word_wrap", False)
         new_view.set_line_endings('unix')
         tf.close()
@@ -417,7 +417,7 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
                 tf.write(text.replace('\r', ''))
                 tf.seek(0)
                 new_view = sublime.active_window().open_file(tf.name)
-                new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+                # new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
                 new_view.set_line_endings('unix')
                 # new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
                 tf.close()
