@@ -305,6 +305,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             result_in_new_tab = te_get_setting('te_result_in_new_tab')
             if result_in_new_tab:
                 new_view = sublime.active_window().new_file()
+                new_view.set_syntax_file(self.view.settings().get('syntax'))
                 new_view.set_name('TSQLEasy result (%s)' % current_time)
                 new_view.settings().set("word_wrap", False)
                 new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
