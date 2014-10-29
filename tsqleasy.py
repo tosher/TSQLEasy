@@ -152,7 +152,7 @@ def te_reload_aliases_from_file():
         if global_alias.set_text_hash(text.encode(te_get_encodings())):
             global_alias.aliases = {}
             te_get_all_aliases(text)
-            sublime.status_message('Aliases was reloaded.')
+            sublime.status_message('Aliases were reloaded.')
             # print current aliases..
             # global_alias.alias_list()
         else:
