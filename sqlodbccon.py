@@ -84,23 +84,23 @@ class SQLCon:
                 self.sqlcolumns = self.sqlcursor.description
                 self.sqldataset = self.sqlcursor.fetchall()
             except pyodbc.OperationalError as e:
-                print('OperationalError exception: %s' % e)
+                print('\n\nOperationalError exception: %s' % e)
                 self.sqldataset = []
             except pyodbc.ProgrammingError as e:
-                if str(e).startswith('No results'):
+                if str(e).startswith('\n\nNo results'):
                     pass
                 else:
-                    print('ProgrammingError exception: %s' % e)
+                    print('\n\nProgrammingError exception: %s' % e)
                 self.sqldataset = []
             except Exception as e:
-                print('Unknown exception: %s' % e)
+                print('\n\nUnknown exception: %s' % e)
                 self.sqldataset = []
         except pyodbc.ProgrammingError as e:
-            print("SQL ProgrammingError exception: %s" % e)
+            print("\n\nSQL ProgrammingError exception: %s" % e)
             self.sqldataset = []
         except pyodbc.DatabaseError as e:
-            print("SQL DatabaseError exception: %s - %s" % (e[0], e[1].replace("\n", ".")))
+            print("\n\nSQL DatabaseError exception: %s - %s" % (e[0], e[1].replace("\n", ".")))
             self.sqldataset = []
         except Exception as e:
-            print('Unknown exception: %s' % e)
+            print('\n\nUnknown exception: %s' % e)
             self.sqldataset = []
