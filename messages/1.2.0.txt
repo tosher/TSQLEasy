@@ -1,4 +1,4 @@
-Mediawiker 1.2.0 Changelog:
+TSQL Easy 1.2.0 Changelog:
 
 * Auto completions with table names and table columns
 * Execution of scope of sql-requests (separated by **--go** line)
