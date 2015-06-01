@@ -293,7 +293,7 @@
 			<key>comment</key>
 			<string>Control-of-flow keywords: https://msdn.microsoft.com/en-us//library/ms174290.aspx</string>
 			<key>match</key>
-			<string>(?i:\b(BEGIN|END|RETURN|break|THROW|CONTINUE|TRY|CATCH|GOTO label|WAITFOR|IF|ELSE|WHILE)\b)</string>
+			<string>(?i:\b(BEGIN|END|RETURN|break|THROW|CONTINUE|TRY|CATCH|GOTO|WAITFOR|IF|ELSE|WHILE)\b)</string>
 			<key>name</key>
 			<string>keyword.other.reserved.sql</string>
 		</dict>
@@ -301,7 +301,7 @@
 			<key>comment</key>
 			<string>Label:</string>
 			<key>match</key>
-			<string>^(.+):</string>
+			<string>^(.+):\s*$</string>
 			<key>name</key>
 			<string>support.label.sql</string>
 		</dict>
@@ -908,3 +908,4 @@
 	<string>C49120AC-6ECC-11D9-ACC8-000D93589AF6</string>
 </dict>
 </plist>
+  
