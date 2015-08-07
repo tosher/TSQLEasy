@@ -32,7 +32,7 @@ class SQLAlias():
         pass
 
     def set_alias(self, alias, name):
-        if alias not in self.aliases or self.aliases[alias] != name:
+        if self.aliases.get(alias, '') != name:
             self.aliases[alias] = name
 
     def get_alias(self, alias):
@@ -56,7 +56,6 @@ class SQLAlias():
 
 global_alias = SQLAlias()
 # list of tables
-# edited by Caio Hamamura - will get schema too
 sqlreq_tables = 'SELECT Distinct TABLE_NAME as name, TABLE_SCHEMA as schemaname FROM information_schema.TABLES'
 # list of columns
 sqlreq_columns = "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(?)"
@@ -422,7 +421,21 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
         position = self.view.sel()[0].begin()
-        word_cursor = self.view.substr(self.view.word(position)).strip('\n').strip()
+        word_region = self.view.word(position)
+        word_cursor = self.view.substr(word_region).strip('\n').strip()
+
+        chars_before_region = sublime.Region(word_region.a - 1, word_region.a)
+        chars_before = self.view.substr(chars_before_region).strip()
+
+        if chars_before == u'.':
+            while not chars_before.startswith((' ', '\n')):
+                chars_before_region = sublime.Region(chars_before_region.a - 1, chars_before_region.b)
+                chars_before = self.view.substr(chars_before_region)
+            chars_before = chars_before.strip()
+
+        if chars_before:
+            word_cursor = ''.join([chars_before, word_cursor])
+
         sqlreq = "exec sp_helptext @objname = ?"
         sqlcon = te_get_connection()
         if sqlcon is not None:
