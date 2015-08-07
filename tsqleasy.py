@@ -21,6 +21,8 @@ else:
 # TODO: Completions to TSQL operators
 # TODO: Processes, locks, etc..
 
+DEFAULT_SYNTAX = 'Packages/TSQLEasy/TSQL.tmLanguage'
+
 
 class SQLAlias():
     aliases = {}
@@ -34,11 +36,7 @@ class SQLAlias():
             self.aliases[alias] = name
 
     def get_alias(self, alias):
-        # print('alias is %s' % alias)
-        if alias in self.aliases:
-            return self.aliases[alias]
-        else:
-            return ''
+        return self.aliases.get(alias, '')
 
     def alias_list(self):
         for alias in self.aliases:
@@ -58,7 +56,8 @@ class SQLAlias():
 
 global_alias = SQLAlias()
 # list of tables
-sqlreq_tables = 'SELECT Distinct TABLE_NAME as name FROM information_schema.TABLES'
+# edited by Caio Hamamura - will get schema too
+sqlreq_tables = 'SELECT Distinct TABLE_NAME as name, TABLE_SCHEMA as schemaname FROM information_schema.TABLES'
 # list of columns
 sqlreq_columns = "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(?)"
 
@@ -87,7 +86,7 @@ def te_get_connection():
         autocommit = server_list[server_active]['autocommit'] if 'autocommit' in server_list[server_active] else True
         timeout = server_list[server_active]['timeout'] if 'timeout' in server_list[server_active] else 0
 
-        sqlcon = sqlodbccon.SQLCon(server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs="5", autocommit=autocommit, timeout=timeout)
+        sqlcon = sqlodbccon.SQLCon(server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs=5, autocommit=autocommit, timeout=timeout)
         return sqlcon
     else:
         return None
@@ -115,7 +114,8 @@ def te_get_alias(string_data):
 def te_get_all_aliases(text):
     # get aliases from substrings FROM and JOIN
     text = text.lower()
-    pattern = r'[^\w](from|join)\s{0,}(\w+)\s(as\s)?\s{0,}(\w+)'
+    # edited by Caio Hamamura - will get schema and square brackets (optionally)
+    pattern = r'[^\w](from|join)\s{0,}(\[?\w+?\]?\.?\[?\w+\]?)\s(as\s)?\s{0,}(\w+)'
     aliases_strings = re.findall(pattern, text)
     if aliases_strings:
         for alias in aliases_strings:
@@ -149,12 +149,10 @@ def te_reload_aliases_from_file():
     if view is not None:
         all_text_region = sublime.Region(0, view.size())
         text = view.substr(all_text_region)
-        if global_alias.set_text_hash(text.encode(te_get_encodings())):
+        if global_alias.set_text_hash(text.encode('utf-8')):
             global_alias.aliases = {}
             te_get_all_aliases(text)
             sublime.status_message('Aliases were reloaded.')
-            # print current aliases..
-            # global_alias.alias_list()
         else:
             sublime.status_message('Text unchanged. Using old aliases.')
 
@@ -201,14 +199,21 @@ def te_get_columns(position=None):
     return columns
 
 
-def te_get_tables():
+def te_get_tables(schema=None):
+    ''' schema in arguments to filter tables by schema '''
     tables = []
     sqlcon = te_get_connection()
+
+    if schema is None:
+        schema = sqlcon.defaultschema
+
     if sqlcon is not None:
         sqlcon.dbexec(sqlreq_tables)
         if sqlcon.sqldataset:
+            # will filter tables by schema
             for row in sqlcon.sqldataset:
-                tables.append(('%s\tSQL table' % row.name, row.name))
+                if schema is None or row.schemaname.lower() == schema.lower():
+                    tables.append(('%s\tSQL table' % row.name, row.name))
         sqlcon.dbdisconnect()
     return tables
 
@@ -244,12 +249,10 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
 
     def on_load(self, view):
         if self.check_tab(view):
-            # view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
             te_reload_aliases_from_file()
 
     def on_activated(self, view):
         if self.check_tab(view):
-            # view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
             te_reload_aliases_from_file()
 
     def check_tab(self, view):
@@ -258,30 +261,42 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
             return True
         return False
 
+    def _is_alias(self, val):
+        ''' check string is table alias '''
+        te_reload_aliases_from_file()
+        if not global_alias.get_alias(val.lower()):
+            return False
+        return True
+
     def on_query_completions(self, view, prefix, locations):
-        #auto_completions = [view.extract_completions(prefix)]
+        # auto_completions = [view.extract_completions(prefix)]
         if self.check_tab(view):
             view = sublime.active_window().active_view()
             position = view.sel()[0].begin()
             word_cursor = view.substr(view.word(position)).strip('\n').strip()
             pre_position = position - len(word_cursor) - 1
             pre_word_char = view.substr(pre_position).strip('\n').strip()
-            if word_cursor == u'.':
-                completions = te_get_columns()
-            elif pre_word_char == u'.':
-                completions = te_get_columns(pre_position)
-            else:
-                completions = te_get_tables()
 
-            #completions.extend(auto_completions)
-            return (completions)
+            word_before = None
+            if word_cursor == u'.':
+                word_before = view.substr(view.word(position - 1))
+                position = position - 1
+            elif pre_word_char == u'.':
+                word_before = view.substr(view.word(pre_position))
+                position = pre_position
+
+            if word_before is not None:
+                if self._is_alias(word_before):
+                    return (te_get_columns(position))
+                else:
+                    return (te_get_tables(word_before))
+            else:
+                return (te_get_tables())
 
 
 class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
     def run(self, view):
-        self.source_encodings = te_get_encodings()
-        #self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         self.sqlcon = te_get_connection()
         self.view.set_line_endings('windows')
         if self.view.sel()[0]:
@@ -289,7 +304,6 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         else:
             self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
         if self.sqlcon is not None and self.sql_query:
-            # queries = re.split("\n--go\n", self.sql_query)
             queries = self.sql_query.split('\n--go\n')
             text = ''
             for query in queries:
@@ -305,7 +319,6 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             result_in_new_tab = te_get_setting('te_result_in_new_tab')
             if result_in_new_tab:
                 new_view = sublime.active_window().new_file()
-                new_view.set_syntax_file(self.view.settings().get('syntax'))
                 new_view.set_name('TSQLEasy result (%s)' % current_time)
                 new_view.settings().set("word_wrap", False)
                 new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
@@ -317,14 +330,19 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         else:
             sublime.status_message('Nothing to execute.')
 
-    def validate(self, value):
+    def getval(self, value):
         if value is None:
             return '{null}'
         else:
             if pythonver >= 3:
-                return value
+                return str(value)
             else:
-                return value.decode(self.source_encodings)
+                if isinstance(value, unicode):
+                    return value
+                elif isinstance(value, str):
+                    return value.decode(te_get_encodings())
+                else:
+                    return str(value)
 
     def table_print(self, data, title_row):
         """
@@ -336,12 +354,10 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         max_widths = {}
         data_copy = [dict(title_row)] + list(data)
         for col in data_copy[0].keys():
-            # max_widths[col] = max([len(str(row[col])) for row in data_copy])
-            max_widths[col] = len(max([self.validate(row[col]) for row in data_copy], key=len))
+            max_widths[col] = len(max([row[col] for row in data_copy], key=len))
         cols_order = [tup[0] for tup in title_row]
 
         def custom_just(col, value):
-            value = self.validate(value)
             return value.ljust(max_widths[col])
 
         for row in data_copy:
@@ -368,7 +384,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                     title_row = [(val[0], val[0]) for val in self.sqlcon.sqlcolumns]
                     column_names = True
                 for col in title_row:
-                    row_as_dict[col[0]] = str(getattr(row, col[0]))
+                    row_as_dict[col[0]] = self.getval(getattr(row, col[0]))
                 data_rows.append(row_as_dict)
 
             res_body = self.table_print(data_rows, title_row)
@@ -381,8 +397,9 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
         res_footer = ('\n------ SQL result stats ------\n'
                       'Records count: %s | '
+                      'Rows affected: %s | '
                       'Execution time: %s secs | '
-                      'Received at: %s' % (len(data_rows), round(timedelta, 3), received_time))
+                      'Received at: %s' % (len(data_rows), self.sqlcon.sqlcursor.rowcount, round(timedelta, 3), received_time))
         return '%s%s%s' % (res_header, res_body, res_footer)
 
 
@@ -392,7 +409,10 @@ class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
         prefix = 'Console_'
         tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
         new_view = sublime.active_window().open_file(tf.name)
-        # new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
+
+        new_view.set_syntax_file(te_get_setting('te_syntax', DEFAULT_SYNTAX))
+        new_view.settings().set('tsqleasy_is_here', True)
+
         new_view.settings().set("word_wrap", False)
         new_view.set_line_endings('unix')
         tf.close()
@@ -401,7 +421,6 @@ class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
 class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
-        # self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         position = self.view.sel()[0].begin()
         word_cursor = self.view.substr(self.view.word(position)).strip('\n').strip()
         sqlreq = "exec sp_helptext @objname = ?"
@@ -411,17 +430,23 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
             text = ''
             if sqlcon.sqldataset:
                 text = ''.join([row.Text for row in sqlcon.sqldataset])
+
+                if pythonver < 3:
+                    text = text.encode('utf-8')
+
             sqlcon.dbdisconnect()
             if text:
                 prefix = '%s_tmp_' % word_cursor
-                tf = tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True)
-                tf.write(text.replace('\r', ''))
-                tf.seek(0)
-                new_view = sublime.active_window().open_file(tf.name)
-                # new_view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
-                new_view.set_line_endings('unix')
-                # new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
-                tf.close()
+                with tempfile.NamedTemporaryFile(mode='w+t', suffix='.sql', prefix=prefix, dir=None, delete=True) as tf:
+
+                    tf.write(text.replace('\r', ''))
+                    tf.seek(0)
+                    if os.path.exists(tf.name):
+                        new_view = sublime.active_window().open_file(tf.name)
+
+                        new_view.set_syntax_file(te_get_setting('te_syntax', DEFAULT_SYNTAX))
+                        new_view.settings().set('tsqleasy_is_here', True)
+                        new_view.set_line_endings('unix')
         else:
             sublime.status_message('No connection to SQL server')
 
@@ -432,7 +457,6 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
     filename_abs_path = ''
 
     def run(self, view):
-        # self.view.set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         path = os.path.dirname(os.path.abspath(self.view.file_name()))
         position = self.view.sel()[0].begin()
         word_cursor = self.view.substr(self.view.word(position)).strip('\n').strip()
@@ -463,12 +487,6 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
             return False
 
     def get_proc(self, path):
-        # sublime.active_window().active_view().set_syntax_file('Packages/TSQLEasy/TSQL.tmLanguage')
         sublime.active_window().open_file(self.filename_abs_path)
-
-
-class TsqlEasyLoad(sublime_plugin.EventListener):
-    def on_activated(self, view):
-        if 'TSQL' in view.settings().get('syntax'):
-            view.settings().set('tsqleasy_is_here', True)
-
+        self.view.set_syntax_file(te_get_setting('te_syntax', DEFAULT_SYNTAX))
+        self.view.settings().set('tsqleasy_is_here', True)
