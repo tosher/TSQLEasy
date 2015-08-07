@@ -22,8 +22,11 @@ except (ImportError) as e:
 
 class SQLCon:
 
-    def __init__(self, server='127.0.0.1', driver='SQL Server', serverport="1433", username="",
+    defaultschema = None
+
+    def __init__(self, server='127.0.0.1', driver='SQL Server', serverport=1433, username="",
                  password="", database="", sleepsecs=5, autocommit=True, timeout=0):
+
         self.driver = driver
         self.server = server
         self.serverport = serverport
@@ -37,9 +40,26 @@ class SQLCon:
         self.sqlconnection = None
         self.sqlcursor = None
         self.dbconnect()
+        self.defaultschema = self._get_default_schema()
 
     def _get_connection_string(self):
-        return 'DRIVER={%s};SERVER=%s,%s;DATABASE=%s;UID=%s;PWD=%s' % (self.driver, self.server, self.serverport, self.database, self.username, self.password)
+        driver = 'DRIVER={%s}' % self.driver
+        server = 'SERVER=%s,%s' % (self.server, self.serverport) if self.serverport else 'SERVER=%s' % (self.server)
+        db = 'DATABASE=%s' % self.database
+        if not self.username:
+            auth = 'Trusted_Connection=yes'
+        else:
+            auth = 'UID=%s;PWD=%s' % (self.username, self.password)
+
+        connection_string = ';'.join([driver, server, db, auth])
+
+        return connection_string
+
+    def _get_default_schema(self):
+        if self.sqlconnection is not None:
+            self.dbexec('SELECT SCHEMA_NAME()')
+            if self.sqldataset:
+                return self.sqldataset[0][0]
 
     def dbconnect(self):
         self.sqlconnection = None
@@ -73,7 +93,6 @@ class SQLCon:
 
         if self.sqlcursor is None or self.sqlconnection is None:
             raise Exception("SQL: No connection to server")
-
         try:
             if sql_params:
                 self.sqlcursor.execute(sql_string, sql_params)
