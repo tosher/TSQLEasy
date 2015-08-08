@@ -55,10 +55,6 @@ class SQLAlias():
 
 
 global_alias = SQLAlias()
-# list of tables
-sqlreq_tables = 'SELECT Distinct TABLE_NAME as name, TABLE_SCHEMA as schemaname FROM information_schema.TABLES'
-# list of columns
-sqlreq_columns = "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(?)"
 
 
 def te_get_setting(key, default_value=None):
@@ -172,23 +168,24 @@ def te_get_title():
 
 
 def te_get_columns(position=None):
+    ''' get table columns for completions '''
+    sqlreq_columns = "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(?)"
+
     te_reload_aliases_from_file()
     view = sublime.active_window().active_view()
     if position is None:
         position = view.sel()[0].begin() - 1
     table_name = view.substr(view.word(position))
 
-    # print('Get columns for table %s' % table_name.lower())
     columns = []
     # check auto aliases
     al = global_alias.get_alias(table_name.lower())
     if al:
-        # print('%s is a alias of %s' % (table_name.lower(), al))
         table_name = al
 
     sqlcon = te_get_connection()
-    if sqlcon is not None:
-        sqlcon.dbexec(sqlreq_columns, [table_name])
+    if sqlcon.sqlconnection is not None:
+        sqlcon.dbexec(sqlreq_columns, (table_name,))
         if sqlcon.sqldataset:
             for row in sqlcon.sqldataset:
                 column = row.name
@@ -199,20 +196,21 @@ def te_get_columns(position=None):
 
 
 def te_get_tables(schema=None):
-    ''' schema in arguments to filter tables by schema '''
+    ''' get tables list with filter by schema for completions '''
+
+    sqlreq_tables = 'SELECT Distinct TABLE_NAME as name FROM information_schema.TABLES WHERE TABLE_SCHEMA = (?)'
+
     tables = []
     sqlcon = te_get_connection()
 
     if schema is None:
         schema = sqlcon.defaultschema
 
-    if sqlcon is not None:
-        sqlcon.dbexec(sqlreq_tables)
+    if sqlcon.sqlconnection is not None and schema:
+        sqlcon.dbexec(sqlreq_tables, (schema,))
         if sqlcon.sqldataset:
-            # will filter tables by schema
             for row in sqlcon.sqldataset:
-                if schema is None or row.schemaname.lower() == schema.lower():
-                    tables.append(('%s\tSQL table' % row.name, row.name))
+                tables.append(('%s\tSQL table' % row.name, row.name))
         sqlcon.dbdisconnect()
     return tables
 
@@ -340,8 +338,12 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                     return value
                 elif isinstance(value, str):
                     return value.decode(te_get_encodings())
+                elif isinstance(value, bytearray):
+                    # http://obsoleter.com/2012/8/28/pyodbc-and-sql-server-binary-fields/
+                    hs = ["{0:0>2}".format(hex(b)[2:].upper()) for b in value]
+                    return '0x' + ''.join(hs)
                 else:
-                    return str(value)
+                    return unicode(str(value))
 
     def table_print(self, data, title_row):
         """
@@ -438,7 +440,7 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
 
         sqlreq = "exec sp_helptext @objname = ?"
         sqlcon = te_get_connection()
-        if sqlcon is not None:
+        if sqlcon.sqlconnnection is not None:
             sqlcon.dbexec(sqlreq, [word_cursor])
             text = ''
             if sqlcon.sqldataset:
