@@ -440,7 +440,7 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
 
         sqlreq = "exec sp_helptext @objname = ?"
         sqlcon = te_get_connection()
-        if sqlcon.sqlconnnection is not None:
+        if sqlcon.sqlconnection is not None:
             sqlcon.dbexec(sqlreq, [word_cursor])
             text = ''
             if sqlcon.sqldataset:
