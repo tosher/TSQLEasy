@@ -333,7 +333,6 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                         self.res_view = sublime.active_window().create_output_panel(panel_name)
                     else:
                         self.res_view = sublime.active_window().get_output_panel(panel_name)
-                print(self.res_view.name())
                 self.res_view.run_command('tsql_easy_insert_text', {'position': self.res_view.size(), 'text': text + '\n'})
                 self.res_view.show(self.res_view.size())
                 sublime.active_window().run_command("show_panel", {"panel": "output." + panel_name})
