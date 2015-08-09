@@ -302,6 +302,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             self.sql_query = self.view.substr(self.view.sel()[0])
         else:
             self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
+
         if self.sqlcon.sqlconnection is not None and self.sql_query:
             queries = self.sql_query.split('\n--go\n')
             text = ''
@@ -359,63 +360,102 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                 else:
                     return unicode(str(value))
 
-    def table_print(self, data, title_row):
-        """
-        http://howto.pui.ch/post/37471158914/python-print-list-of-dicts-as-ascii-table
-        data: list of dicts,
-        title_row: e.g. [('name', 'Programming Language'), ('type', 'Language Type')]
-        """
-        result = ''
-        max_widths = {}
-        data_copy = [dict(title_row)] + list(data)
-        for col in data_copy[0].keys():
-            max_widths[col] = len(max([row[col] for row in data_copy], key=len))
-        cols_order = [tup[0] for tup in title_row]
-
-        def custom_just(col, value):
-            return value.ljust(max_widths[col])
-
-        for row in data_copy:
-            row_str = " | ".join([custom_just(col, row[col]) for col in cols_order])
-            result += '| %s |\n' % (row_str)
-            if data_copy.index(row) == 0:
-                underline = "-+-".join(['-' * max_widths[col] for col in cols_order])
-                result += '+-%s-+\n' % (underline)
-        return result
-
     def get_pretty(self, timedelta, received_time):
 
-        title_row = []
-        data_rows = []
-        res_header = '\n------ SQL Result ------\n\n'
-        res_body = ''
-        column_names = False
         show_request_in_result = te_get_setting('te_show_request_in_result', True)
+
+        data_rows = []
+        data_text = ''
         if self.sqlcon.sqldataset:
+
+            # table header row
+            header_list = [val[0] for val in self.sqlcon.sqlcolumns]
+            data_rows.append(header_list)
+
             for row in self.sqlcon.sqldataset:
-                row_as_dict = {}
-                if not column_names:
-                    # column sql name and printed name will be the same
-                    title_row = [(val[0], val[0]) for val in self.sqlcon.sqlcolumns]
-                    column_names = True
-                for col in title_row:
-                    row_as_dict[col[0]] = self.getval(getattr(row, col[0]))
-                data_rows.append(row_as_dict)
+                row_list = [self.getval(val) for val in row]
+                data_rows.append(row_list)
 
-            res_body = self.table_print(data_rows, title_row)
+            data_text = self.table_print(data_rows)
         else:
-            res_body = 'Completed: Result without dataset\n'
-        if show_request_in_result:
-            res_header = ('\n\n------ SQL Request ------\n'
-                          '%s\n'
-                          '------ SQL Result -------\n\n' % (self.sql_query))
+            data_text = 'Completed: result without dataset'
 
-        res_footer = ('\n------ SQL result stats ------\n'
-                      'Records count: %s | '
-                      'Rows affected: %s | '
-                      'Execution time: %s secs | '
-                      'Received at: %s' % (len(data_rows), self.sqlcon.sqlcursor.rowcount, round(timedelta, 3), received_time))
-        return '%s%s%s' % (res_header, res_body, res_footer)
+        res_request = ''
+        if show_request_in_result:
+            res_request = ''.join([
+                '------ SQL request ------',
+                '\n',
+                self.sql_query,
+                '\n'])
+
+        res_data = ''.join([
+            '------ SQL result -------',
+            '\n',
+            data_text])
+
+        data_stats = ' | '.join([
+            'Records count: %s' % len(data_rows),
+            'Rows affected: %s' % self.sqlcon.sqlcursor.rowcount,
+            'Execution time: %s secs' % round(timedelta, 3),
+            'Received at: %s' % received_time])
+
+        res_stats = ''.join([
+            '------ SQL result stats ------',
+            '\n',
+            data_stats,
+            '\n',
+            '\n'])
+
+        return '\n'.join([val for val in [res_request, res_data, res_stats] if val])
+
+    def _get_max_lens(self, rows):
+        max_lens = []
+        rows_by_cols = zip(*rows)
+        for row in rows_by_cols:
+            max_lens.append(len(max(row, key=len)))
+        return max_lens
+
+    def _pretty(self, value, length, align='left'):
+
+        align_sign = '<'
+        if align == 'left':
+            align_sign = '<'
+        elif align == 'center':
+            align_sign = '^'
+        elif align == 'right':
+            align_sign = '>'
+
+        line_format = '{0:%s%s}' % (align_sign, length)
+
+        return line_format.format(value)
+
+    def table_print(self, rows):
+
+        HEADER_LINE_CROSS = '---'
+        FOOTER_LINE_CROSS = '---'
+        INTABLE_LINE_CROSS = '-+-'
+
+        text = ''
+        is_header_ready = False
+        ml = self._get_max_lens(rows)
+
+        line_list = ['-' * l for l in ml]
+        line_header = '--%s--\n' % HEADER_LINE_CROSS.join(line_list)
+        line_intable = '--%s--\n' % INTABLE_LINE_CROSS.join(line_list)
+        line_footer = '--%s--\n' % FOOTER_LINE_CROSS.join(line_list)
+
+        text += line_header
+
+        for row in rows:
+            line_list = [self._pretty(val, ml[idx]) for idx, val in enumerate(row)]
+            row_line = ' | '.join(line_list)
+            row_line = '| %s |\n' % row_line
+            text += row_line
+            if not is_header_ready:
+                text += line_intable
+                is_header_ready = True
+        text += line_footer
+        return text
 
 
 class TsqlEasyOpenConsoleCommand(sublime_plugin.WindowCommand):
