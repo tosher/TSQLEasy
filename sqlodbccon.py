@@ -88,7 +88,7 @@ class SQLCon:
         if sql_params is None:
             sql_params = []
 
-        if not isinstance(sql_params, list):
+        if not isinstance(sql_params, list) and not isinstance(sql_params, tuple):
             raise Exception('Wrong sql_params type: %s' % type(sql_params))
 
         if self.sqlcursor is None or self.sqlconnection is None:
