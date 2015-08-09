@@ -293,6 +293,8 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
 
 class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
+    res_view = None
+
     def run(self, view):
         self.sqlcon = te_get_connection()
         self.view.set_line_endings('windows')
@@ -300,7 +302,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             self.sql_query = self.view.substr(self.view.sel()[0])
         else:
             self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
-        if self.sqlcon is not None and self.sql_query:
+        if self.sqlcon.sqlconnection is not None and self.sql_query:
             queries = self.sql_query.split('\n--go\n')
             text = ''
             for query in queries:
@@ -313,15 +315,28 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                     text += self.get_pretty(timedelta, current_time)
             self.sqlcon.dbdisconnect()
 
-            result_in_new_tab = te_get_setting('te_result_in_new_tab')
-            if result_in_new_tab:
-                new_view = sublime.active_window().new_file()
-                new_view.set_name('TSQLEasy result (%s)' % current_time)
-                new_view.settings().set("word_wrap", False)
-                new_view.run_command('tsql_easy_insert_text', {'position': 0, 'text': text})
+            result_in_tab = te_get_setting('te_result_in_tab', False)
+            result_in_new_tab = te_get_setting('te_result_in_new_tab', False)
+
+            if result_in_tab:
+                if not self.res_view or result_in_new_tab or self.res_view.id() not in [v.id() for v in sublime.active_window().views()]:
+                    self.res_view = sublime.active_window().new_file()
+                self.res_view.set_name('TSQLEasy result (%s)' % current_time)
+                self.res_view.settings().set("word_wrap", False)
+                self.res_view.run_command('tsql_easy_insert_text', {'position': self.res_view.size(), 'text': text})
+                sublime.active_window().focus_view(self.res_view)
+
             else:
-                sublime.active_window().run_command('show_panel', {'panel': 'console', 'toggle': True})
-                print(text)
+                panel_name = 'result_panel'
+                if not self.res_view:
+                    if int(sublime.version()) >= 3000:
+                        self.res_view = sublime.active_window().create_output_panel(panel_name)
+                    else:
+                        self.res_view = sublime.active_window().get_output_panel(panel_name)
+                print(self.res_view.name())
+                self.res_view.run_command('tsql_easy_insert_text', {'position': self.res_view.size(), 'text': text + '\n'})
+                self.res_view.show(self.res_view.size())
+                sublime.active_window().run_command("show_panel", {"panel": "output." + panel_name})
 
             sublime.status_message('Executed.')
         else:
@@ -392,7 +407,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         else:
             res_body = 'Completed: Result without dataset\n'
         if show_request_in_result:
-            res_header = ('------ SQL Request ------\n'
+            res_header = ('\n\n------ SQL Request ------\n'
                           '%s\n'
                           '------ SQL Result -------\n\n' % (self.sql_query))
 
