@@ -49,7 +49,7 @@ class SQLCon:
         if not self.username:
             auth = 'Trusted_Connection=yes'
         else:
-            auth = 'UID=%s;PWD=%s' % (self.username, self.password)
+            auth = 'UID=%s;PWD={%s}' % (self.username, self.password)
 
         connection_string = ';'.join([driver, server, db, auth])
 
