@@ -73,6 +73,7 @@ def te_get_connection():
     server_list = te_get_setting('te_sql_server')
     driver = server_list[server_active]['driver']
     if driver:
+        dsn = server_list[server_active]['dsn']
         server = server_list[server_active]['server']
         server_port = server_list[server_active]['server_port'] if 'server_port' in server_list[server_active] else '1433'
         username = server_list[server_active]['username']
@@ -81,7 +82,7 @@ def te_get_connection():
         autocommit = server_list[server_active]['autocommit'] if 'autocommit' in server_list[server_active] else True
         timeout = server_list[server_active]['timeout'] if 'timeout' in server_list[server_active] else 0
 
-        sqlcon = sqlodbccon.SQLCon(server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs=5, autocommit=autocommit, timeout=timeout)
+        sqlcon = sqlodbccon.SQLCon(dsn=dsn, server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs=5, autocommit=autocommit, timeout=timeout)
         return sqlcon
     else:
         return None

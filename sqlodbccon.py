@@ -24,9 +24,10 @@ class SQLCon:
 
     defaultschema = None
 
-    def __init__(self, server='127.0.0.1', driver='SQL Server', serverport=1433, username="",
+    def __init__(self, dsn=None, server='127.0.0.1', driver='SQL Server', serverport=1433, username="",
                  password="", database="", sleepsecs=5, autocommit=True, timeout=0):
 
+        self.dsn = dsn
         self.driver = driver
         self.server = server
         self.serverport = serverport
@@ -43,17 +44,26 @@ class SQLCon:
         self.defaultschema = self._get_default_schema()
 
     def _get_connection_string(self):
-        driver = 'DRIVER={%s}' % self.driver
-        server = 'SERVER=%s,%s' % (self.server, self.serverport) if self.serverport else 'SERVER=%s' % (self.server)
+        if not self.dsn:
+            driver = 'DRIVER={%s}' % self.driver
+            server = 'SERVER=%s,%s' % (self.server, self.serverport) if self.serverport else 'SERVER=%s' % (self.server)
+        else:
+            driver = None
+            server = 'DSN=%s' % self.dsn
+
         db = 'DATABASE=%s' % self.database
+
         if not self.username:
             auth = 'Trusted_Connection=yes'
         else:
-            auth = 'UID=%s;PWD={%s}' % (self.username, self.password)
+            # password escaping for SQL Server
+            auth_format = 'UID=%s;PWD={%s}' if driver == 'SQL Server' else 'UID=%s;PWD=%s'
+            auth = auth_format % (self.username, self.password)
 
-        connection_string = ';'.join([driver, server, db, auth])
+        connection_string = ';'.join([val for val in [driver, server, db, auth] if val])
 
         return connection_string
+
 
     def _get_default_schema(self):
         if self.sqlconnection is not None:
