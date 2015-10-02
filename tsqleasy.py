@@ -71,11 +71,11 @@ def te_set_setting(key, value):
 def te_get_connection():
     server_active = te_get_setting('te_server_active')
     server_list = te_get_setting('te_sql_server')
-    driver = server_list[server_active]['driver']
+    driver = server_list[server_active].get('driver', None)
     if driver:
-        dsn = server_list[server_active]['dsn']
-        server = server_list[server_active]['server']
-        server_port = server_list[server_active]['server_port'] if 'server_port' in server_list[server_active] else '1433'
+        dsn = server_list[server_active].get('dsn', None)
+        server = server_list[server_active].get('server', None)
+        server_port = server_list[server_active].get('server_port', 1433)
         username = server_list[server_active]['username']
         password = server_list[server_active]['password']
         database = server_list[server_active]['database']
