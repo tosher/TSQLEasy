@@ -12,10 +12,11 @@ Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 * Possibility to open local files with the same name as stored procedure (function, etc.): **ProcedureName** -> **ProcedureName.sql**.
 * Improved syntax highlighting for TSQL.
 
-**Warning!** Require server connection for work or use fake server with empty **driver** value for work offline without completions, etc.
+**Warning!** Server connection required for full functionality or use fake server with empty **driver** value for work offline without completions, etc.
 
 ### PyODBC
 Now, package includes pyODBC (3.0.7) binaries:
+
 * Windows: ST2/3 x32/x64
 * Linux: ST2/3 x64
 * Pull requests are welcome! :)
@@ -27,27 +28,7 @@ The easiest way to install this is with [Package Control](http://wbond.net/subli
 
  * If you just went and installed Package Control, you probably need to restart Sublime Text before doing this next bit.
  * Bring up the Command Palette (Command+Shift+p on OS X, Control+Shift+p on Linux/Windows).
- * **Temporary!** Select "Package Control: Add Repository" and add
- <pre>
- https://github.com/tosher/TSQLEasy.git
- </pre>
  * Select "Package Control: Install Package" (it'll take a few seconds)
  * Select TSQL Easy when the list appears.
 
 Package Control will automatically keep **TSQL Easy** up to date with the latest version.
-
-### Other methods
-First find your Sublime Text 2 Packages folder:
-
-    - OS X: ~/Library/Application Support/Sublime Text 2/Packages/
-    - Windows: %APPDATA%/Sublime Text 2/Packages/
-    - Linux: ~/.Sublime Text 2/Packages/
-
-If you have Git, you can clone this repo to "/packages-folder/TSQLEasy/"
-<pre>
-git clone --recursive git://github.com/tosher/TSQLEasy.git
-</pre>
-or,
-
-Download this repo using the "ZIP" button above, unzip and place the files in "/packages-folder/TSQLEasy/"
-
