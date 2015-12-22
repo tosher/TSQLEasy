@@ -21,6 +21,14 @@ Now, package includes pyODBC (3.0.7) binaries:
 * Linux: ST2/3 x64
 * Pull requests are welcome! :)
 
+## Commands
+
+* Open console - open new console for sql requests
+* Server select - change predefined sql server connection
+* Execute - execute the request (<kbd>F5</kbd>)
+* Open server object - open procedure or function under cursor from server
+* Open local object - open procedure or function under cursor from local path
+
 ## Install
 
 ### Package Control
