@@ -22,6 +22,7 @@ else:
 # TODO: Processes, locks, etc..
 
 DEFAULT_SYNTAX = 'Packages/TSQLEasy/TSQL.tmLanguage'
+DEFAULT_REPORT_SYNTAX = 'Packages/Markdown/Markdown.tmLanguage'
 
 
 class SQLAlias():
@@ -216,6 +217,149 @@ def te_get_tables(schema=None):
     return tables
 
 
+def te_show_data(sql_query, setup, **kwargs):
+
+    def get_data():
+        cols_data = {}
+
+        if cols:
+            for col in cols:
+                cols_data[col['prop']] = len(col['colname'])
+
+            for row in rows:
+                for col in cols:
+
+                    value = ''
+                    maxlen = col.get('maxlen', None)
+                    # field_type = col.get('type', None)
+                    col_prop = col['prop']
+
+                    value = str(row[columns_indexes.get(col_prop)]).strip().replace('\r', ' ')
+                    if maxlen:
+                        value = ' '.join(value.splitlines())
+                    # if field_type == 'datetime':
+                    #     value = rl_get_datetime(value)
+
+                    value_len = len(cut(value, maxlen))
+                    if value_len > cols_data[col_prop]:
+                        cols_data[col_prop] = value_len
+        return cols_data
+
+    def cut(val, maxlen):
+        if maxlen:
+            if len(val) > maxlen:
+                return '%s..' % val[:maxlen - 2]
+        return val
+
+    def pretty(value, length, align='left'):
+
+        align_sign = '<'
+        if align == 'left':
+            align_sign = '<'
+        elif align == 'center':
+            align_sign = '^'
+        elif align == 'right':
+            align_sign = '>'
+
+        line_format = '{0:%s%s}' % (align_sign, length)
+        return line_format.format(value)
+
+    cols = te_get_setting(setup, {})
+    if cols:
+        content = ''
+
+        shortcuts = [
+            '[Enter](View query)',
+            '[r](Refresh rows)']
+
+        content_header = '%s\n\n' % ' '.join(shortcuts)
+        if kwargs.get('title', None):
+            content_header += '## %s\n' % kwargs['title']
+
+        sqlcon = te_get_connection()
+        sql_params = kwargs.get('sql_params', ())
+        if sqlcon.sqlconnection is not None and sql_query:
+            text = ''
+            # dt_before = time.time()
+            sqlcon.dbexec(sql_query, sql_params)
+            rows = sqlcon.sqldataset
+            # columns_indexes = {v[0]: k for k, v in enumerate(sqlcon.sqlcolumns)}
+            columns_indexes = dict((v[0], k) for k, v in enumerate(sqlcon.sqlcolumns))
+            # dt_after = time.time()
+            # timedelta = dt_after - dt_before
+            # current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # text += self.get_pretty(timedelta, current_time)
+            sqlcon.dbdisconnect()
+
+        content_header += 'Total processes: %s\n\n' % len(rows)
+
+        table_data_widths = get_data()
+        # content_header_line = '%s-\n' % ('-' * (sum([val for val in table_data_widths.values()]) + len(cols) * 3))
+
+        content_header_line = ' | '.join(['-' * table_data_widths.get(col['prop'], 0) for col in cols])
+        content_header_line = '| %s |\n' % content_header_line
+
+        table_header = '| ' + ' | '.join(pretty(col['colname'], table_data_widths[col['prop']], 'center') for col in cols)
+        table_header = '%s |\n' % table_header
+
+        if rows:
+            for row in rows:
+                table_row = '|'
+                for col in cols:
+
+                    value = ''
+                    maxlen = col.get('maxlen', None)
+                    # field_type = col.get('type', None)
+                    col_prop = col['prop']
+
+                    value = str(row[columns_indexes.get(col_prop)]).strip().replace('\r', ' ')
+                    if maxlen:
+                        value = ' '.join(value.splitlines())
+
+                    # if field_type == 'datetime':
+                    #     value = rl_get_datetime(value)
+
+                    value = cut(value, maxlen)
+                    align = col.get('align', 'left')
+                    table_row += ' %s |' % pretty(value, table_data_widths[col_prop], align)
+                table_row += '\n'
+                content += table_row
+        else:
+            text = 'No data'
+            line_format = '|{:^%s}|\n' % (len(content_header_line) - 3)
+            content += line_format.format(text)
+
+        # content_footer_line = content_header_line.replace('|', '-')
+
+        # return Markdown compatible report
+        return ''.join([
+                content_header,
+                # '```\n',
+                # content_header_line,
+                table_header,
+                content_header_line,
+                content,
+                # content_footer_line,
+                # '```\n'
+            ])
+
+
+def te_validate_screen(screen_type):
+
+    message = ''
+    is_valid = sublime.active_window().active_view().settings().get(screen_type, False)
+
+    if not is_valid:
+        if screen_type == 'te_activity_monitor':
+            message = 'This command is provided for the Activity monitor!'
+        elif screen_type == 'te_long_queries':
+            message = 'This command is provided for the Long running queries report!'
+        else:
+            message = 'This command is not provided for this view!'
+
+    return (is_valid, message)
+
+
 class TsqlEasySetActiveServerCommand(sublime_plugin.WindowCommand):
     server_keys = []
     server_on = '>'
@@ -223,12 +367,12 @@ class TsqlEasySetActiveServerCommand(sublime_plugin.WindowCommand):
     server_active = ''
 
     def run(self):
-        self.server_active = te_get_setting('te_server_active')
+        self.server_active = te_get_setting('te_server_active', 'Offline')
         servers = te_get_setting('te_sql_server')
-        self.server_keys = [self.is_checked(x) for x in servers.keys()]
+        self.server_keys = [self.is_active(x) for x in servers.keys()]
         sublime.set_timeout(lambda: self.window.show_quick_panel(self.server_keys, self.on_done), 1)
 
-    def is_checked(self, server_key):
+    def is_active(self, server_key):
         checked = self.server_on if server_key == self.server_active else self.server_off
         return '%s %s' % (checked, server_key)
 
@@ -296,10 +440,12 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
 
     res_view = None
 
-    def run(self, view):
+    def run(self, view, query=None):
         self.sqlcon = te_get_connection()
         self.view.set_line_endings('windows')
-        if self.view.sel()[0]:
+        if query:
+            self.sql_query = query
+        elif self.view.sel()[0]:
             self.sql_query = self.view.substr(self.view.sel()[0])
         else:
             self.sql_query = self.view.substr(sublime.Region(0, self.view.size()))
@@ -426,7 +572,7 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
         elif align == 'right':
             align_sign = '>'
 
-        line_format = '{0:%s%s}' % (align_sign, length)
+        line_format = u'{0:%s%s}' % (align_sign, length)
 
         return line_format.format(value)
 
@@ -560,3 +706,204 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
         sublime.active_window().open_file(self.filename_abs_path)
         self.view.set_syntax_file(te_get_setting('te_syntax', DEFAULT_SYNTAX))
         self.view.settings().set('tsqleasy_is_here', True)
+
+
+class TsqlEasyActivityMonitorCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit, is_refresh=False):
+
+        # OUTER APPLY Fn_get_sql(sp.sql_handle)
+        sql_query = '''
+        SELECT sp.spid,
+            -- TEXT as query,
+            Db_name(sp.dbid) as dbname,
+            sp.cpu,
+            sp.memusage,
+            sp.status,
+            sp.loginame,
+            sp.hostname,
+            sp.blocked,
+            sp.waittime,
+            sp.lastwaittype,
+            sp.waitresource,
+            convert(varchar(255), sp.login_time) as login_time,
+            convert(varchar(255), sp.last_batch) as last_batch,
+            sp.cmd,
+            sp.open_tran,
+            sp.program_name
+        FROM sys.sysprocesses as sp
+        -- OUTER APPLY sys.dm_exec_sql_text(sp.sql_handle)
+        WHERE sp.spid > ?
+        ORDER BY sp.spid
+        '''
+
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        title = 'Activity monitor (at %s)' % current_time
+        min_pid = te_get_setting('te_activity_monitor_min_pid', 50)
+        query_params = {'title': title, 'sql_params': (min_pid,)}
+
+        if not is_refresh:
+            r = self.view.window().new_file()
+            r.set_name(title)
+            r.settings().set('te_activity_monitor', True)
+            syntax_file = te_get_setting('te_report_syntax', DEFAULT_REPORT_SYNTAX)
+            r.set_syntax_file(syntax_file)
+        else:
+            is_valid, message = te_validate_screen('te_activity_monitor')
+            if not is_valid:
+                sublime.message_dialog(message)
+                return
+
+            r = self.view
+            r.set_read_only(False)
+            r.erase(edit, sublime.Region(0, self.view.size()))
+
+        text = te_show_data(sql_query=sql_query, setup='te_activity_monitor_columns', **query_params)
+        r.settings().set("word_wrap", False)
+        r.run_command('tsql_easy_insert_text', {'position': 0, 'text': text + '\n\n'})
+        r.set_scratch(True)
+        r.set_read_only(True)
+
+
+class TsqlEasyLongQueriesCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit, is_refresh=False):
+
+        # http://dba.stackexchange.com/questions/66249/how-do-i-find-a-long-running-query-with-process-id-process-name-login-time-u
+        sql_query = '''
+        SELECT
+            cast(cast(query_hash as varbinary) as bigint) as query_hash
+            ,creation_time
+            ,last_execution_time
+            ,total_physical_reads
+            ,total_logical_reads
+            ,total_logical_writes
+            ,execution_count
+            ,total_worker_time
+            ,total_elapsed_time
+            ,total_elapsed_time / execution_count avg_elapsed_time
+            /*
+            ,SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
+                ((CASE statement_end_offset
+                    WHEN -1 THEN DATALENGTH(st.text)
+                    ELSE qs.statement_end_offset END
+                - qs.statement_start_offset)/2) + 1) as query
+            */
+        FROM sys.dm_exec_query_stats as qs
+        -- CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) st
+        ORDER BY total_elapsed_time / execution_count DESC;
+        '''
+
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        title = 'Long running queries (at %s)' % current_time
+        query_params = {'title': title}
+
+        if not is_refresh:
+            r = self.view.window().new_file()
+            r.set_name(title)
+            r.settings().set('te_long_queries', True)
+            syntax_file = te_get_setting('te_report_syntax', DEFAULT_REPORT_SYNTAX)
+            r.set_syntax_file(syntax_file)
+        else:
+            is_valid, message = te_validate_screen('te_long_queries')
+            if not is_valid:
+                sublime.message_dialog(message)
+                return
+
+            r = self.view
+            r.set_read_only(False)
+            r.erase(edit, sublime.Region(0, self.view.size()))
+
+        text = te_show_data(sql_query=sql_query, setup='te_long_queries_columns', **query_params)
+        r.settings().set("word_wrap", False)
+        r.run_command('tsql_easy_insert_text', {'position': 0, 'text': text + '\n\n'})
+        r.set_scratch(True)
+        r.set_read_only(True)
+
+
+class TsqlEasyShowQueryCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+
+        row_id = None
+        try:
+            line = self.view.substr(self.view.line(self.view.sel()[0].end()))
+            row_id = line.split('|')[1].strip()  # TODO: require ID in first column
+        except:
+            pass
+
+        if row_id:
+            self.get_query(int(row_id))
+
+    def get_query(self, row_id):
+
+        long_queries = self.view.settings().get('te_long_queries', False)
+        activity_monitor = self.view.settings().get('te_activity_monitor', False)
+
+        if activity_monitor:
+            sql_query = '''
+            SELECT
+                TEXT AS query,
+                sp.status,
+                sp.blocked
+            FROM sys.sysprocesses as sp
+            OUTER APPLY sys.dm_exec_sql_text(sp.sql_handle)
+            WHERE sp.spid = ?
+            '''
+        elif long_queries:
+            # TODO: Plan show
+            # --CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) st2
+            sql_query = '''
+            SELECT
+                SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
+                    ((CASE statement_end_offset
+                    WHEN -1 THEN DATALENGTH(st.text)
+                    ELSE qs.statement_end_offset END
+                    - qs.statement_start_offset)/2) + 1) AS statement_text
+            FROM sys.dm_exec_query_stats as qs
+            CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) st
+            where query_hash = cast(cast(? as bigint) as varbinary)
+            '''
+        else:
+            sublime.status_message('Error: Unknown mode')
+
+        if row_id:
+            sqlcon = te_get_connection()
+            if sqlcon.sqlconnection is not None and sql_query:
+                sqlcon.dbexec(sql_query, (row_id,))
+                rows = sqlcon.sqldataset
+
+                if rows:
+                    if activity_monitor:
+                        process_query = rows[0][0]
+                        process_query = process_query.strip() if process_query else '-- No query'
+                        process_status = rows[0][1].strip()
+                        process_blocked_by = rows[0][2]
+                    elif long_queries:
+                        long_query = rows[0][0]
+                        long_query = long_query.strip() if long_query else '-- No query'
+
+                    index_of_textend = self.view.size()
+                    self.view.set_read_only(False)
+
+                    if activity_monitor:
+                        text = '\n### PID: %s (%s)\n' % (row_id, process_status)
+                        if process_blocked_by:
+                            text += 'Blocked by: %s\n' % process_blocked_by
+                        text += '```sql\n'
+                        text += '%s\n' % process_query.replace('\r', '')
+                        text += '```\n'
+                    elif long_queries:
+                        text = '\n### Query hash: %s\n' % row_id
+                        text += '```sql\n'
+                        text += '%s\n' % long_query.replace('\r', '')
+                        text += '```\n'
+
+                    self.view.run_command('tsql_easy_insert_text', {'position': index_of_textend, 'text': text})
+                    self.view.show(index_of_textend)
+                    self.view.sel().clear()
+                    self.view.sel().add(index_of_textend)
+                    self.view.set_read_only(True)
+
+                sqlcon.dbdisconnect()
+        else:
+            sublime.status_message('Error: ROW ID is not found')

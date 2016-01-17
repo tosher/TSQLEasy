@@ -1,5 +1,10 @@
 [
     { "keys": ["ctrl+shift+f5"], "command": "tsql_easy_exec_sql", "context": [{"key": "setting.tsqleasy_is_here", "operand": true}]},
     { "keys": ["ctrl+shift+f11"], "command": "tsql_easy_set_active_server" },
-    { "keys": ["ctrl+alt+c"], "command": "tsql_easy_open_console" }
+    { "keys": ["ctrl+alt+c"], "command": "tsql_easy_open_console" },
+    { "keys": ["ctrl+alt+o"], "command": "tsql_easy_open_server_object" },
+    { "keys": ["r"], "command": "tsql_easy_activity_monitor", "args": {"is_refresh": true}, "context": [{"key": "setting.te_activity_monitor", "operand": true}] },
+    { "keys": ["r"], "command": "tsql_easy_long_queries", "args": {"is_refresh": true}, "context": [{"key": "setting.te_long_queries", "operand": true}] },
+    { "keys": ["enter"], "command": "tsql_easy_show_query", "context": [{"key": "setting.te_activity_monitor", "operand": true} ] },
+    { "keys": ["enter"], "command": "tsql_easy_show_query", "context": [{"key": "setting.te_long_queries", "operand": true} ] }
 ]

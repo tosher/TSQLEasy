@@ -24,6 +24,42 @@
     "te_result_in_tab": false,
     "te_result_in_new_tab": false,
     "te_show_request_in_result": false,
-    "te_syntax": "Packages/TSQLEasy/TSQL.tmLanguage"
+    "te_syntax": "Packages/TSQLEasy/TSQL.tmLanguage",
+    "te_report_syntax": "Packages/Markdown/Markdown.tmLanguage",
+    "te_activity_monitor_min_pid": 50,
+
+    "te_activity_monitor_columns": [
+        { "prop": "spid", "colname": "SPID", "align": "right" },
+        { "prop": "status", "colname": "Status" },
+        { "prop": "blocked", "colname": "Blocked by", "align": "right"},
+        { "prop": "waittime", "colname": "Wait time", "align": "right"},
+        { "prop": "open_tran", "colname": "Open tran.", "align": "right"},
+        { "prop": "lastwaittype", "colname": "Last wait type"},
+        { "prop": "waitresource", "colname": "Wait resource"},
+        { "prop": "login_time", "colname": "Login time"},
+        { "prop": "last_batch", "colname": "Last batch"},
+        { "prop": "cmd", "colname": "CMD"},
+        { "prop": "cpu", "colname": "CPU", "align": "right"},
+        { "prop": "memusage", "colname": "Memory usage", "align": "right"},
+        { "prop": "dbname", "colname": "Database"},
+        { "prop": "loginame", "colname": "Loginame"},
+        { "prop": "hostname", "colname": "Hostname"},
+        { "prop": "program_name", "colname": "Program name"}
+        //{ "prop": "query", "colname": "Query", "maxlen": 17 }
+    ],
+    "te_long_queries_columns": [
+        { "prop": "query_hash", "colname": "Query hash", "align": "right" },
+        { "prop": "creation_time", "colname": "Creation time", "align": "right" },
+        { "prop": "last_execution_time", "colname": "Last execution time" },
+        { "prop": "total_physical_reads", "colname": "Total physical reads", "align": "right"},
+        { "prop": "total_logical_reads", "colname": "Total logical reads", "align": "right"},
+        { "prop": "total_logical_writes", "colname": "Total logical writes", "align": "right"},
+        { "prop": "execution_count", "colname": "Execution count"},
+        { "prop": "total_worker_time", "colname": "Total worker time"},
+        { "prop": "total_elapsed_time", "colname": "Total elapsed time"},
+        { "prop": "avg_elapsed_time", "colname": "Average elapsed time"}
+        //{ "prop": "query", "colname": "Query"}
+    ]
+
 }
 

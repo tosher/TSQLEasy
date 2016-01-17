@@ -11,6 +11,7 @@ Server connections based on [pyODBC](https://code.google.com/p/pyodbc/) library.
 * Possibility to receive code of procedure, functions by text under cursor.
 * Possibility to open local files with the same name as stored procedure (function, etc.): **ProcedureName** -> **ProcedureName.sql**.
 * Improved syntax highlighting for TSQL.
+* Reports: **Activity monitor**, **Long running queries**
 
 **Warning!** Server connection required for full functionality or use fake server with empty **driver** value for work offline without completions, etc.
 
@@ -28,6 +29,8 @@ Now, package includes pyODBC (3.0.7) binaries:
 * Execute - execute the request (<kbd>F5</kbd>)
 * Open server object - open procedure or function under cursor from server
 * Open local object - open procedure or function under cursor from local path
+* Activity monitor (+refresh, +show query)
+* Long running queries (+refresh, +show query)
 
 ## Install
 

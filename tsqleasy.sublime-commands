@@ -3,5 +3,10 @@
     { "caption": "TSQL Easy: Execute", "command": "tsql_easy_exec_sql" },
     { "caption": "TSQL Easy: Open server object", "command": "tsql_easy_open_server_object" },
     { "caption": "TSQL Easy: Open local object", "command": "tsql_easy_open_local_object" },
-    { "caption": "TSQL Easy: Open console", "command": "tsql_easy_open_console" }
+    { "caption": "TSQL Easy: Open console", "command": "tsql_easy_open_console" },
+    { "caption": "TSQL Easy: Activity monitor", "command": "tsql_easy_activity_monitor" },
+    { "caption": "TSQL Easy: Activity monitor refresh", "command": "tsql_easy_activity_monitor", "args": {"is_refresh": true} },
+    { "caption": "TSQL Easy: Long running queries", "command": "tsql_easy_long_queries" },
+    { "caption": "TSQL Easy: Long running queries refresh", "command": "tsql_easy_long_queries", "args": {"is_refresh": true} },
+    { "caption": "TSQL Easy: Activity monitor show query", "command": "tsql_easy_activity_monitor_show_query" }
 ]

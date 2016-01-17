@@ -1,6 +1,25 @@
 [
     {
+        "id": "tools",
+        "children":
+        [
+            {
+                "id": "TSQLEasy",
+                "caption": "TSQLEasy",
+                "mnemonic": "T",
+                "children":
+                [
+                    {"command": "tsql_easy_set_active_server", "caption": "Server select"},
+                    {"command": "tsql_easy_open_console", "caption": "Open console"},
+                    {"command": "tsql_easy_activity_monitor", "caption": "Activity monitor"},
+                    {"command": "tsql_easy_long_queries", "caption": "Long running queries"}
+                ]
+            }
+        ]
+    },
+    {
         "id": "preferences",
+        "mnemonic": "n",
         "children":
         [
             {

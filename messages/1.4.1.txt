@@ -1,0 +1,7 @@
+TSQL Easy 1.4.1 Changelog:
+
+* New report: **Active monitor**.
+* New report: **Long running queries**.
+* Menu section **Tools/TSQLEasy**.
+* ST2: Error fix with non-utf8 encoding sql data.
+

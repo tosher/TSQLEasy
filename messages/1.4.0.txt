@@ -1,4 +1,4 @@
-TSQL Easy 1.3.0 Changelog:
+TSQL Easy 1.4.0 Changelog:
 
 * Linux ST2 pyodbc.so was rebuilt with ucs4
 * dsn parameter was added to connection parameters
