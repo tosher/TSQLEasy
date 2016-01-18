@@ -64,7 +64,6 @@ class SQLCon:
 
         return connection_string
 
-
     def _get_default_schema(self):
         if self.sqlconnection is not None:
             self.dbexec('SELECT SCHEMA_NAME()')
@@ -79,22 +78,18 @@ class SQLCon:
             if self.autocommit:
                 self.sqlconnection.autocommit = True
             self.sqlcursor = self.sqlconnection.cursor()
-        except pyodbc.IntegrityError as e:
-            print("SQL IntegrityError exception: %s" % e)
-        except pyodbc.DataError as e:
-            print("SQL DataError exception: %s" % e)
-        except pyodbc.ProgrammingError as e:
-            print("SQL ProgrammingError exception: %s" % e)
-        except pyodbc.DatabaseError as e:
-            print("SQL DatabaseError exception: %s" % e)
-        except Exception as e:
-            print("SQL Unknown exception: %s" % e)
+        except Exception:
+            raise
 
     def dbdisconnect(self):
         if self.sqlconnection:
             self.sqlconnection.close()
 
     def dbexec(self, sql_string, sql_params=None):
+
+        self.sqldataset = []
+        self.sqlcolumns = ()
+
         if sql_params is None:
             sql_params = []
 
@@ -103,33 +98,19 @@ class SQLCon:
 
         if self.sqlcursor is None or self.sqlconnection is None:
             raise Exception("SQL: No connection to server")
+
         try:
-            if sql_params:
-                self.sqlcursor.execute(sql_string, sql_params)
-            else:
-                self.sqlcursor.execute(sql_string)
-            try:
-                # columns names, props..
-                self.sqlcolumns = self.sqlcursor.description
-                self.sqldataset = self.sqlcursor.fetchall()
-            except pyodbc.OperationalError as e:
-                print('\n\nOperationalError exception: %s' % e)
-                self.sqldataset = []
-            except pyodbc.ProgrammingError as e:
-                if str(e).startswith('\n\nNo results'):
-                    pass
-                else:
-                    print('\n\nProgrammingError exception: %s' % e)
-                self.sqldataset = []
-            except Exception as e:
-                print('\n\nUnknown exception: %s' % e)
-                self.sqldataset = []
-        except pyodbc.ProgrammingError as e:
-            print("\n\nSQL ProgrammingError exception: %s" % e)
-            self.sqldataset = []
-        except pyodbc.DatabaseError as e:
-            print("\n\nSQL DatabaseError exception: %s - %s" % (e[0], e[1].replace("\n", ".")))
-            self.sqldataset = []
+            self.sqlcursor.execute(sql_string, sql_params)
         except Exception as e:
-            print('\n\nUnknown exception: %s' % e)
-            self.sqldataset = []
+            raise
+
+        try:
+            self.sqlcolumns = self.sqlcursor.description
+            self.sqldataset = self.sqlcursor.fetchall()
+        except pyodbc.ProgrammingError as e:
+            if str(e).startswith('No results'):
+                pass
+            else:
+                raise
+        except Exception as e:
+            raise

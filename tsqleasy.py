@@ -83,8 +83,11 @@ def te_get_connection():
         autocommit = server_list[server_active]['autocommit'] if 'autocommit' in server_list[server_active] else True
         timeout = server_list[server_active]['timeout'] if 'timeout' in server_list[server_active] else 0
 
-        sqlcon = sqlodbccon.SQLCon(dsn=dsn, server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs=5, autocommit=autocommit, timeout=timeout)
-        return sqlcon
+        try:
+            sqlcon = sqlodbccon.SQLCon(dsn=dsn, server=server, driver=driver, serverport=server_port, username=username, password=password, database=database, sleepsecs=5, autocommit=autocommit, timeout=timeout)
+            return sqlcon
+        except Exception as e:
+            sublime.message_dialog(e.args[1])
     else:
         return None
 
@@ -455,12 +458,17 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             text = ''
             for query in queries:
                 if query:
+                    error = None
                     dt_before = time.time()
-                    self.sqlcon.dbexec(query)
+                    try:
+                        self.sqlcon.dbexec(query)
+                    except Exception as e:
+                        error = '%s: %s' % (type(e).__name__, e.args[1])
                     dt_after = time.time()
                     timedelta = dt_after - dt_before
                     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    text += self.get_pretty(timedelta, current_time)
+                    text += self.get_pretty(timedelta, current_time, query, error)
+
             self.sqlcon.dbdisconnect()
 
             result_in_tab = te_get_setting('te_result_in_tab', False)
@@ -507,32 +515,35 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
                 else:
                     return unicode(str(value))
 
-    def get_pretty(self, timedelta, received_time):
+    def get_pretty(self, timedelta, received_time, query, error=None):
 
         show_request_in_result = te_get_setting('te_show_request_in_result', True)
 
         data_rows = []
-        data_text = ''
-        if self.sqlcon.sqldataset:
 
-            # table header row
-            header_list = [val[0] for val in self.sqlcon.sqlcolumns]
-            data_rows.append(header_list)
+        data_text = '' if error is None else error
 
-            for row in self.sqlcon.sqldataset:
-                row_list = [self.getval(val) for val in row]
-                data_rows.append(row_list)
+        if not error:
+            if self.sqlcon.sqldataset:
 
-            data_text = self.table_print(data_rows)
-        else:
-            data_text = 'Completed: result without dataset'
+                # table header row
+                header_list = [val[0] for val in self.sqlcon.sqlcolumns]
+                data_rows.append(header_list)
+
+                for row in self.sqlcon.sqldataset:
+                    row_list = [self.getval(val) for val in row]
+                    data_rows.append(row_list)
+
+                data_text = self.table_print(data_rows)
+            else:
+                data_text = 'Completed: result without dataset'
 
         res_request = ''
         if show_request_in_result:
             res_request = ''.join([
                 '------ SQL request ------',
                 '\n',
-                self.sql_query,
+                query,
                 '\n'])
 
         res_data = ''.join([
@@ -899,9 +910,9 @@ class TsqlEasyShowQueryCommand(sublime_plugin.TextCommand):
                         text += '```\n'
 
                     self.view.run_command('tsql_easy_insert_text', {'position': index_of_textend, 'text': text})
-                    self.view.show(index_of_textend)
+                    self.view.show(index_of_textend + 1)
                     self.view.sel().clear()
-                    self.view.sel().add(index_of_textend)
+                    self.view.sel().add(index_of_textend + 1)
                     self.view.set_read_only(True)
 
                 sqlcon.dbdisconnect()
