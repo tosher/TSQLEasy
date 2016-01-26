@@ -1,8 +1,5 @@
 [
-    {
-        "command": "tsql_easy_open_local_object", "caption": "Tsql Easy: Open local object"
-    },
-    {
-        "command": "tsql_easy_open_server_object", "caption": "Tsql Easy: Open server object"
-    }
+    { "caption": "-", "id": "TSQLEasy" },
+    { "command": "tsql_easy_open_local_object", "caption": "Tsql Easy: Open local object" },
+    { "command": "tsql_easy_open_server_object", "caption": "Tsql Easy: Open server object" }
 ]
