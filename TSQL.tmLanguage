@@ -643,13 +643,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>string_escape</key>
-		<dict>
-			<key>match</key>
-			<string>\\.</string>
-			<key>name</key>
-			<string>constant.character.escape.sql</string>
-		</dict>
 		<key>string_interpolation</key>
 		<dict>
 			<key>captures</key>
@@ -713,13 +706,6 @@
 					</dict>
 					<key>name</key>
 					<string>string.quoted.single.sql</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#string_escape</string>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>captures</key>
@@ -765,13 +751,6 @@
 					</dict>
 					<key>name</key>
 					<string>string.quoted.other.backtick.sql</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#string_escape</string>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>captures</key>
@@ -908,4 +887,3 @@
 	<string>C49120AC-6ECC-11D9-ACC8-000D93589AF6</string>
 </dict>
 </plist>
-  
