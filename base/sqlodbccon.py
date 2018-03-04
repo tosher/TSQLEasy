@@ -5,14 +5,20 @@ import sys
 import os.path
 import sublime
 
-pythonver = sys.version_info[0]
+odbc_lib_path = os.path.normpath(
+    os.path.join(
+        os.path.dirname(__file__),
+        '..',
+        'lib',
+        'st3_%s_%s' % (sublime.platform(), sublime.arch())
+    )
+)
 
-st_version = 2
-if int(sublime.version()) > 3000:
-    st_version = 3
-
-odbc_lib_path = os.path.join(os.path.dirname(__file__), 'lib', 'st%d_%s_%s' % (st_version, sublime.platform(), sublime.arch()))
 sys.path.append(odbc_lib_path)
+
+# macos workable hint to use system lib
+# sys.path.append('~/.pyenv/versions/3.3.6/lib/python3.3/site-packages')
+
 try:
     import pyodbc
     print('TSQLEasy: PyODBC was loaded successfully.')
@@ -75,6 +81,7 @@ class SQLCon:
         self.sqlcursor = None
         try:
             self.sqlconnection = pyodbc.connect(self.connection_string, autocommit=self.autocommit, timeout=self.timeout)
+            # self.sqlconnection.setencoding('utf-8')
             if self.autocommit:
                 self.sqlconnection.autocommit = True
             self.sqlcursor = self.sqlconnection.cursor()
@@ -102,7 +109,7 @@ class SQLCon:
         try:
             self.sqlcursor.execute(sql_string, sql_params)
         except Exception as e:
-            raise
+            raise Exception('Error while request execution: %s, query: %s, params: %s' % (e, sql_string, sql_params))
 
         try:
             self.sqlcolumns = self.sqlcursor.description
@@ -111,6 +118,6 @@ class SQLCon:
             if str(e).startswith('No results'):
                 pass
             else:
-                raise
+                raise(e)
         except Exception as e:
-            raise
+            raise(e)

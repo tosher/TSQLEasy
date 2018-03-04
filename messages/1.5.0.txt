@@ -1,0 +1,6 @@
+TSQL Easy 1.5.0 changelog:
+
+* Sublime text 2 is not supported anymore. Please use Sublime text 3 x64.
+* pyODBC was updated to latest 4.0.22 version.
+* OSX support was added. Check [wiki page](https://github.com/tosher/TSQLEasy/wiki/UnixODBC-MacOS) for setup notes.
+* Result tables drawing with [terminaltables](https://robpol86.github.io/terminaltables/) module.

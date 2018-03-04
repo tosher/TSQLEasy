@@ -2,31 +2,34 @@
     "te_sql_server":
     {
         "Main": {
-            "driver": "SQL Server",
+            "dsn": "", // based on system connectivity settings, use odbc `dsn` or `server` name/ip
+            "driver": "SQL Server", // FreeTDS
             "server": "127.0.0.1",
             "server_port": 1433,
             "username": "",
             "password": "",
             "database": "",
-            "autocommit": true
+            "autocommit": true,
+            "timeout": 0
             },
         "Offline": {
             "driver": ""
             }
     },
     "te_server_active": "Main",
-    "te_encodings":
-    {
-        "main_profile": "utf-8"
-    },
-    "te_sql_profile": "main_profile",
-    "te_procedure_path": [],
+    // deprecated
+    // "te_encodings":
+    // {
+    //     "main_profile": "utf-8"
+    // },
+    // "te_sql_profile": "main_profile",
+    "te_procedure_path": [], // pathes to local source files
     "te_result_in_tab": false,
     "te_result_in_new_tab": false,
     "te_show_request_in_result": false,
     "te_syntax": "Packages/TSQLEasy/TSQL.tmLanguage",
     "te_report_syntax": "Packages/Markdown/Markdown.tmLanguage",
-    "te_activity_monitor_min_pid": 50,
+    "te_activity_monitor_min_pid": 50, // show/hide system processes
 
     "te_activity_monitor_columns": [
         { "prop": "spid", "colname": "SPID", "align": "right" },
