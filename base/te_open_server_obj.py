@@ -45,10 +45,10 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
                     tf.write(text.replace('\r', ''))
                     tf.seek(0)
                     if os.path.exists(tf.name):
-                        new_view = sublime.active_window().open_file(tf.name)
+                        new_view = self.view.window().open_file(tf.name)
 
                         new_view.set_syntax_file(utils.te_get_setting('te_syntax', utils.DEFAULT_SYNTAX))
                         new_view.settings().set('tsqleasy_is_here', True)
                         new_view.set_line_endings('unix')
         else:
-            sublime.status_message('No connection to SQL server')
+            self.view.window().status_message('No connection to SQL server')

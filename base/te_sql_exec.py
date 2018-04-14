@@ -1,11 +1,14 @@
 #!/usr/bin/env python\n
 # -*- coding: utf-8 -*-
 
+import sys
+import os
 import time
 from datetime import datetime
 import sublime
 import sublime_plugin
 from . import te_utils as utils
+sys.path.append(os.path.join(os.path.dirname(__file__), "../libs"))
 from ..libs.terminaltables.other_tables import WindowsTable as SingleTable
 
 
@@ -45,24 +48,24 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
             result_in_new_tab = utils.te_get_setting('te_result_in_new_tab', False)
 
             if result_in_tab:
-                if not self.res_view or result_in_new_tab or self.res_view.id() not in [v.id() for v in sublime.active_window().views()]:
-                    self.res_view = sublime.active_window().new_file()
+                if not self.res_view or result_in_new_tab or self.res_view.id() not in [v.id() for v in self.view.window().views()]:
+                    self.res_view = self.view.window().new_file()
                 self.res_view.set_name('TSQLEasy result (%s)' % current_time)
                 self.res_view.settings().set("word_wrap", False)
                 self.res_view.run_command('tsql_easy_insert_text', {'position': self.res_view.size(), 'text': text})
-                sublime.active_window().focus_view(self.res_view)
+                self.view.window().focus_view(self.res_view)
 
             else:
                 panel_name = 'result_panel'
                 if not self.res_view:
-                    self.res_view = sublime.active_window().create_output_panel(panel_name)
+                    self.res_view = self.view.window().create_output_panel(panel_name)
                 self.res_view.run_command('tsql_easy_insert_text', {'position': self.res_view.size(), 'text': text + '\n'})
                 self.res_view.show(self.res_view.size())
-                sublime.active_window().run_command("show_panel", {"panel": "output." + panel_name})
+                self.view.window().run_command("show_panel", {"panel": "output." + panel_name})
 
-            sublime.status_message('Executed.')
+            self.view.window().status_message('Executed.')
         else:
-            sublime.status_message('Nothing to execute.')
+            self.view.window().status_message('Nothing to execute.')
 
     def getval(self, value):
         if value is None:

@@ -20,19 +20,19 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
         if self.is_path(path):
             self.get_proc(path)
         else:
-            sublime.status_message('File [%s] does not exists in dir [%s]' % (self.filename, path))
+            self.view.window().status_message('File [%s] does not exists in dir [%s]' % (self.filename, path))
             self.on_select()
 
     def on_select(self):
         self.proc_dirs = list(utils.te_get_setting('te_procedure_path'))
-        sublime.set_timeout(lambda: sublime.active_window().show_quick_panel(self.proc_dirs, self.on_done), 1)
+        sublime.set_timeout(lambda: self.view.window().show_quick_panel(self.proc_dirs, self.on_done), 1)
 
     def on_done(self, dir_index):
         path = self.proc_dirs[dir_index]
         if self.is_path(path):
             self.get_proc(path)
         else:
-            sublime.status_message('File [%s] does not exists in dir [%s]' % (self.filename, path))
+            self.view.window().status_message('File [%s] does not exists in dir [%s]' % (self.filename, path))
             print('File [%s] does not exists in dir [%s]' % (self.filename, path))
 
     def is_path(self, path):
@@ -43,6 +43,6 @@ class TsqlEasyOpenLocalObjectCommand(sublime_plugin.TextCommand):
             return False
 
     def get_proc(self, path):
-        sublime.active_window().open_file(self.filename_abs_path)
+        self.view.window().active_window().open_file(self.filename_abs_path)
         self.view.set_syntax_file(utils.te_get_setting('te_syntax', utils.DEFAULT_SYNTAX))
         self.view.settings().set('tsqleasy_is_here', True)

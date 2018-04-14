@@ -1,7 +1,7 @@
 #!/usr/bin/env python\n
 # -*- coding: utf-8 -*-
 
-import sublime
+# import sublime
 import sublime_plugin
 from . import te_utils as utils
 
@@ -55,7 +55,7 @@ class TsqlEasyShowQueryCommand(sublime_plugin.TextCommand):
         elif long_queries:
             sql_query = self.sql_query_longq
         else:
-            sublime.status_message('Error: Unknown mode')
+            self.view.window().status_message('Error: Unknown mode')
 
         if row_id:
             sqlcon = utils.te_get_connection()
@@ -96,7 +96,7 @@ class TsqlEasyShowQueryCommand(sublime_plugin.TextCommand):
 
                 sqlcon.dbdisconnect()
         else:
-            sublime.status_message('Error: ROW ID is not found')
+            self.view.window().status_message('Error: ROW ID is not found')
 
     def is_visible(self, *args):
         is_actmon = self.view.settings().get('te_activity_monitor', False)

@@ -1,11 +1,14 @@
 #!/usr/bin/env python\n
 # -*- coding: utf-8 -*-
 
+import sys
+import os
 import re
 import sublime
 import sublime_plugin
 from . import sqlodbccon
 from .te_sql_alias import SQLAlias
+sys.path.append(os.path.join(os.path.dirname(__file__), "../libs"))
 from ..libs.terminaltables.other_tables import WindowsTable as SingleTable
 
 
@@ -114,9 +117,9 @@ def te_reload_aliases_from_file():
         if global_alias.set_text_hash(text.encode('utf-8')):
             global_alias.aliases = {}
             te_get_all_aliases(text)
-            sublime.status_message('Aliases were reloaded.')
+            sublime.active_window().status_message('Aliases were reloaded.')
         else:
-            sublime.status_message('Text unchanged. Using old aliases.')
+            sublime.active_window().status_message('Text unchanged. Using old aliases.')
 
 
 def te_get_title():
