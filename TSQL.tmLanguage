@@ -438,11 +438,11 @@
             <key>name</key>
             <string>support.function.cursor.sql</string>
         </dict>
-        <dict>
+       <dict>
             <key>comment</key>
             <string>Data Type Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/data-type-functions-transact-sql</string>
             <key>match</key>
-            <string>(?i)(@@\b(datalength|ident_seed|ident_current|identity|ident_incr|sql_variant_property)\b</string>
+            <string>(?i)\b(datalength|ident_seed|ident_current|identity|ident_incr|sql_variant_property)\b</string>
             <key>name</key>
             <string>support.function.datatype.sql</string>
         </dict>
