@@ -51,12 +51,12 @@ Package Control will automatically keep `TSQL Easy` up to date with the latest v
 
 SQL Request
 
-![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr1.png)
+![SQL request](https://github.com/tosher/TSQLEasy/wiki/images/tsql_easy_scr1.png)
 
 Activity monitor
 
-![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr2.png)
+![SQL request](https://github.com/tosher/TSQLEasy/wiki/images/tsql_easy_scr2.png)
 
 Long running queries
 
-![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr3.png)
+![SQL request](https://github.com/tosher/TSQLEasy/wiki/images/tsql_easy_scr3.png)
