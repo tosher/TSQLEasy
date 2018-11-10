@@ -51,7 +51,7 @@ Package Control will automatically keep `TSQL Easy` up to date with the latest v
 
 SQL Request
 
-![SQL request]((https://raw.githubusercontent.com/wiki/tosher/TSQLEasy/images/tsql_easy_scr1.png)
+![SQL request](https://raw.githubusercontent.com/wiki/tosher/TSQLEasy/images/tsql_easy_scr1.png)
 
 Activity monitor
 
