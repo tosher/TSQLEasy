@@ -46,3 +46,17 @@ The easiest way to install this is with [Package Control](http://wbond.net/subli
  * Select `TSQL Easy` when the list appears.
 
 Package Control will automatically keep `TSQL Easy` up to date with the latest version.
+
+## Screenshots
+
+SQL Request
+
+![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr1.png)
+
+Activity monitor
+
+![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr2.png)
+
+Long running queries
+
+![SQL request](https://github.com/tosher/StGitlab/wiki/images/tsql_easy_scr3.png)
