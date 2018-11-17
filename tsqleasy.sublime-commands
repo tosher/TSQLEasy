@@ -8,5 +8,6 @@
     { "caption": "TSQL Easy: Activity monitor refresh", "command": "tsql_easy_activity_monitor_refresh" },
     { "caption": "TSQL Easy: Long running queries", "command": "tsql_easy_long_queries" },
     { "caption": "TSQL Easy: Long running queries refresh", "command": "tsql_easy_long_queries_refresh" },
-    { "caption": "TSQL Easy: Show query", "command": "tsql_easy_show_query" }
+    { "caption": "TSQL Easy: Show query", "command": "tsql_easy_show_query" },
+    { "caption": "TSQL Easy: Show table info", "command": "tsql_easy_table_info" }
 ]

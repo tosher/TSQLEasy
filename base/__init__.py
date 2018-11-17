@@ -12,7 +12,7 @@ from .te_activity_monitor import TsqlEasyActivityMonitorRefreshCommand
 from .te_long_queries import TsqlEasyLongQueriesCommand
 from .te_long_queries import TsqlEasyLongQueriesRefreshCommand
 from .te_show_query import TsqlEasyShowQueryCommand
-
+from .te_table_info import TsqlEasyTableInfoCommand
 __all__ = [
     'TsqlEasySetActiveServerCommand',
     'TsqlEasyInsertTextCommand',
@@ -24,5 +24,6 @@ __all__ = [
     'TsqlEasyActivityMonitorRefreshCommand',
     'TsqlEasyLongQueriesCommand',
     'TsqlEasyLongQueriesRefreshCommand',
-    'TsqlEasyShowQueryCommand'
+    'TsqlEasyShowQueryCommand',
+    'TsqlEasyTableInfoCommand'
 ]
