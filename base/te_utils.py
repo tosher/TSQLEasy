@@ -77,10 +77,14 @@ def te_get_alias(string_data):
 
 
 def te_get_all_aliases(text):
-    # get aliases from substrings FROM and JOIN
+    # get aliases from sections with FROM, JOIN
+    # --------------------------------------------------
+    # from TableOne AS to
+    #     left join tabletwo ttw On to.ID = ttw.PersonID
+    # --------------------------------------------------
+
     text = text.lower()
-    # edited by Caio Hamamura - will get schema and square brackets (optionally)
-    pattern = r'[^\w](from|join)\s{0,}(\[?\w+?\]?\.?\[?\w+\]?)\s(as\s)?\s{0,}(\w+)'
+    pattern = r'[^\w](from|join)\s{0,}(\[?\w*\]?\.?\[?\w+\]?)\s+(as\s)?\s{0,}(\w+)'
     aliases_strings = re.findall(pattern, text)
     if aliases_strings:
         for alias in aliases_strings:
@@ -88,15 +92,27 @@ def te_get_all_aliases(text):
                 global_alias.set_alias(alias[3].strip('\n').strip(), alias[1].strip('\n').strip())
     del aliases_strings
 
-    # get aliases from section FROM whithou JOINs..
+    # get aliases from sections FROM without JOINs..
+    # except from line
+    # SELECT *
+    #     from TableOne to,
+    # --------------------------
+    #          tabletwo as ttw,
+    #          TableThree tth
+    # --------------------------
+
     is_from_section = False
     words = ('where', 'join', 'order', 'select', 'insert', 'update', 'with', 'group')
     for line in text.split('\n'):
         line = line.strip().strip(',')
+        if not line:
+            continue
         if line.startswith('from') or ' from' in line:
             is_from_section = True
+            continue
         if is_from_section and any(wo in line for wo in words):
             is_from_section = False
+
         if is_from_section:
             pattern = r'^(.*?)\s(as\s)?(.*)'
             aliases_strings = re.findall(pattern, line)
@@ -105,6 +121,8 @@ def te_get_all_aliases(text):
                     if alias[0] and alias[2]:
                         global_alias.set_alias(alias[2].strip('\n').strip(), alias[0].strip('\n').strip())
             del aliases_strings
+    # debug
+    # global_alias.alias_list()
 
 
 def te_reload_aliases_from_file():

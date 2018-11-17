@@ -20,7 +20,7 @@ class SQLAlias():
 
     def alias_list(self):
         for alias in self.aliases:
-            print('[%s] as <%s>' % (self.aliases[alias], alias))
+            print('[%s] => <%s>' % (self.aliases[alias], alias))
 
     def set_text_hash(self, text):
         text_hash = hashlib.md5(text).hexdigest()

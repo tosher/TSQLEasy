@@ -1,0 +1,4 @@
+TSQL Easy 1.6.1 changelog:
+
+* Syntax highlighting fixes
+* Aliases parsing fixes

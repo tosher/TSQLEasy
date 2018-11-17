@@ -101,28 +101,35 @@ contexts:
         # - include: string_interpolation
 
   table_alias:
-    - match: (?<=from|join)\s*
+    - match: (?i)(?<=from|join)\s*
       captures:
         1: comment.block.c
       push:
         - meta_content_scope: meta.alias.sql
-        - match: '((@\w+)|(#{1,2}\w+)|[\w\.\]\[]+)\s+(as\s+)?(?!=\n|,|with|outer|inner|left|right|cross|where|join|on)(\w+)'
+        - match: (?i:\b(on)\b)
+          scope: keyword.alias-as.on.other.sql
+        # @var | #tmptbl | [scheme].tbl [as]
+        - match: '(?i)((@\w+)|(#{1,2}\w+)|[\w\.\]\[]+)\s+(as)?\s*(?!=\n|,|with|outer|inner|left|right|cross|where|join|on)(\w+)'
           captures:
             2: variable.table.sql
             3: string.temp.table.sql
             4: keyword.alias-as.other.sql
             5: entity.name.alias.sql
-        - match: '(?=\n|,|with|outer|inner|left|right|cross|where|join|on)'
+        - match: '(?i)(?=\n|,|with|outer|inner|left|right|cross|where|join|on)'
           captures:
             1: comment.block.c
           pop: true
         - include: comments
+        - include: alias_as
 
   alias_as:
-    - match: '(?<=[\w])\s+(as)\s+(\w+)'
+    - match: '(?<=[\w])\s+(?i)(as)\s+(\w+)'
       captures:
         1: keyword.alias-as.other.sql
         2: entity.name.alias.sql
+    - match: \[?\w+\]?\.
+      scope: entity.name.alias.sql
+
 
   regexps:
     - match: '/(?=\S.*/)'
@@ -153,13 +160,19 @@ contexts:
     - match: '(?i:^go\s*$)'
       captures:
         1: support.constant.go.other.sql
-    - match: (?i:^\s*(create)\s+(aggregate|conversion|database|domain|function|group|(unique\s+)?index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure)\s+)([#'"`]?)(\w+)
+    - match: |-
+        (?i:^\s*(create)\s+(aggregate|conversion|database|domain|function|group|(unique\s+)?index
+        |language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type
+        |user|view|proc|procedure)\s+)([#'"`]?)(\w+)
       scope: meta.create.sql
       captures:
         1: keyword.other.create.sql
         2: keyword.other.sql
         3: entity.name.function.sql
-    - match: (?i:^\s*(drop)\s+(aggregate|conversion|database|domain|function|group|index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure))
+    - match: |-
+        (?i:^\s*(drop)\s+(aggregate|conversion|database|domain|function|group|index
+        |language|operator class|operator|rule|schema|sequence|table|tablespace|trigger
+        |type|user|view|proc|procedure))'
       scope: meta.drop.sql
       captures:
         1: keyword.other.drop.sql
@@ -171,7 +184,9 @@ contexts:
         2: keyword.other.table.sql
         3: entity.name.function.sql
         4: keyword.other.cascade.sql
-    - match: (?i:^\s*(alter)\s+(aggregate|conversion|database|domain|function|group|index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure)\s+)
+    - match: |-
+        (?i:^\s*(alter)\s+(aggregate|conversion|database|domain|function|group|index|language|operator class
+          |operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure)\s+)
       scope: meta.alter.sql
       captures:
         1: keyword.other.alter.sql
@@ -179,7 +194,9 @@ contexts:
     - match: |-
         (?xi)
         # normal stuff, capture 1
-        \b[^\.](bigint|numeric|bit|smallint|decimal|smallmoney|int|tinyint|money|float|real|date|datetimeoffset|datetime2|smalldatetime|datetime|time|char|varchar|text|nchar|nvarchar|ntext|binary|varbinary|image|cursor|timestamp|hierarchyid|uniqueidentifier|sysname|sql_variant|xml|table|geography|geometry)\b
+        \b[^\.](bigint|numeric|bit|smallint|decimal|smallmoney|int|tinyint|money|float|real|date|datetimeoffset
+        |datetime2|smalldatetime|datetime|time|char|varchar|text|nchar|nvarchar|ntext|binary|varbinary|image
+        |cursor|timestamp|hierarchyid|uniqueidentifier|sysname|sql_variant|xml|table|geography|geometry)\b
         # numeric suffix, capture 2 + 3i
         |\b(bit\svarying|character\s(?:varying)?|tinyint|var\schar|float|interval)\((\d+)\)
         # optional numeric suffix, capture 4 + 5i
@@ -213,9 +230,11 @@ contexts:
       scope: constant.numeric.sql
     - match: (?<=^|[^\w\.@])@\w+
       scope: variable.sql
-    - match: \w+\.
-      scope: entity.name.alias.sql
-    - match: (?i:\b(select(\s+distinct)?|insert\s+(ignore\s+)?into|insert|update|with|delete|from|join|set|print|declare|open|close|fetch|deallocate|cursor|for|while|case|when|then|between|is|exec|execute|where|group\sby|or|like|and|not|exists|union(\s+all)?|having|order\sby|over|limit|(inner|cross)\s+join|(outer|cross)\s+apply|straight_join|(left|right)(\s+outer)?\s+join|natural(\s+(left|right)(\s+outer)?)?\s+join)\b)
+    - match: |-
+        (?i:\b(select(\s+distinct)?|insert\s+(ignore\s+)?into|insert|update|with|delete|from|join|set|print
+        |declare|open|close|fetch|deallocate|cursor|for|while|case|when|then|between|is|exec|execute|where
+        |group\sby|or|like|and|not|exists|union(\s+all)?|having|order\sby|over|limit|(inner|cross)\s+join
+        |(outer|cross)\s+apply|straight_join|(left|right)(\s+outer)?\s+join|natural(\s+(left|right)(\s+outer)?)?\s+join)\b)
       scope: keyword.other.DML.sql
     - match: (?i:\b(null)\b)
       scope: constant.language.sql
@@ -223,7 +242,23 @@ contexts:
       scope: keyword.other.DDL.create.II.sql
     - match: (?i:\bvalues\b)
       scope: keyword.other.DML.II.sql
-    - match: (?i:\b(add|external|procedure|all|fetch|public|alter|file|raiserror|and|fillfactor|read|any|for|readtext|as|foreign|reconfigure|asc|freetext|references|authorization|freetexttable|replication|backup|from|restore|begin|full|restrict|between|function|return|break|goto|revert|browse|grant|revoke|bulk|group|right|by|having|rollback|cascade|holdlock|rowcount|case|identity|rowguidcol|check|identity_insert|rule|checkpoint|identitycol|save|close|if|schema|clustered|in|securityaudit|coalesce|index|select|collate|inner|semantickeyphrasetable|column|insert|semanticsimilaritydetailstable|commit|intersect|semanticsimilaritytable|compute|into|session_user|constraint|is|set|contains|join|setuser|containstable|key|shutdown|continue|kill|some|convert|left|statistics|create|like|system_user|cross|lineno|table|current|load|tablesample|current_date|merge|textsize|current_time|national|then|current_timestamp|nocheck|to|current_user|nonclustered|top|cursor|not|tran|database|null|transaction|dbcc|nullif|trigger|deallocate|of|truncate|declare|off|try_convert|default|offsets|tsequal|delete|on|union|deny|open|unique|desc|opendatasource|unpivot|disk|openquery|update|distinct|openrowset|updatetext|distributed|openxml|use|double|option|user|drop|or|values|dump|order|varying|else|outer|view|end|over|waitfor|errlvl|percent|when|escape|pivot|where|except|plan|while|exec|precision|with|execute|primary|within\sgroup|exists|print|writetext|exit|proc)\b)
+    - match: |-
+        (?i:\b(add|external|procedure|all|fetch|public|alter|file|raiserror|and|fillfactor|read
+        |any|for|readtext|as|foreign|reconfigure|asc|freetext|references|authorization|freetexttable
+        |replication|backup|from|restore|begin|full|restrict|between|function|return|break|goto
+        |revert|browse|grant|revoke|bulk|group|right|by|having|rollback|cascade|holdlock|rowcount
+        |case|identity|rowguidcol|check|identity_insert|rule|checkpoint|identitycol|save|close
+        |if|schema|clustered|in|securityaudit|coalesce|index|select|collate|inner
+        |semantickeyphrasetable|column|insert|semanticsimilaritydetailstable|commit|intersect
+        |semanticsimilaritytable|compute|into|session_user|constraint|is|set|contains|join|setuser
+        |containstable|key|shutdown|continue|kill|some|convert|left|statistics|create|like|system_user
+        |cross|lineno|table|current|load|tablesample|current_date|merge|textsize|current_time|national
+        |then|current_timestamp|nocheck|to|current_user|nonclustered|top|cursor|not|tran|database|null
+        |transaction|dbcc|nullif|trigger|deallocate|of|truncate|declare|off|try_convert|default|offsets
+        |tsequal|delete|on|union|deny|open|unique|desc|opendatasource|unpivot|disk|openquery|update|distinct
+        |openrowset|updatetext|distributed|openxml|use|double|option|user|drop|or|values|dump|order|varying
+        |else|outer|view|end|over|waitfor|errlvl|percent|when|escape|pivot|where|except|plan|while|exec
+        |precision|with|execute|primary|within\sgroup|exists|print|writetext|exit|proc)\b)
       # Reserved keywords: https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql
       scope: keyword.other.reserved.sql
     - match: (?i:\b(begin|end|return|break|throw|continue|try|catch|goto|waitfor|if|else|while)\b)
@@ -232,16 +267,19 @@ contexts:
     - match: ^(.+):\s*$
       # Label:
       scope: support.label.sql
-    - match: (?i:\b(begin\s+try|begin\s+catch|end\s+try|end\s+catch|begin\s+tran|begin\s+transaction|begin(\s+work)?|raiserror(\s+work)?|rollback\s+tran|commit(\s+work)?|rollback(\s+work)?|if(\s+work)?|goto|end(\s+work)?|else(\s+work)?|return)\b)
+    - match: |-
+        (?i:\b(begin\s+try|begin\s+catch|end\s+try|end\s+catch|begin\s+tran|begin\s+transaction|begin(\s+work)?
+        |raiserror(\s+work)?|rollback\s+tran|commit(\s+work)?|rollback(\s+work)?|if(\s+work)?|goto|end(\s+work)?
+        |else(\s+work)?|return)\b)
       scope: keyword.other.LUW.sql
     - match: (?i:\b(grant(\swith\sgrant\soption)?|revoke)\b)
       scope: keyword.other.authorization.sql
     - match: (?i:\bin\b)
       scope: keyword.other.data-integrity.sql
-    - match: (?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)
+    - match: |-
+        (?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator
+        |rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)
       scope: keyword.other.object-comments.sql
-    - match: (?i)\bas\b
-      scope: keyword.other.alias.sql
     - match: (?i)\b(DESC|ASC)\b
       scope: keyword.other.order.sql
     - match: '\*'
@@ -267,13 +305,19 @@ contexts:
     - match: (?i)\b(collationproperty|tertiary_weights)\b
       # Collation Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/collation-functions-collationproperty-transact-sql
       scope: support.function.collation.sql
-    - match: (?i)@@\b(datefirst|options|dbts|remserver|langid|servername|language|servicename|lock_timeout|spid|max_connections|textsize|max_precision|version|nestlevel)\b
+    - match: |-
+        (?i)@@\b(datefirst|options|dbts|remserver|langid|servername|language|servicename|lock_timeout
+        |spid|max_connections|textsize|max_precision|version|nestlevel)\b
       # Configuration Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/configuration-functions-transact-sql
       scope: support.function.config.sql
     - match: (?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b
       # Conversion Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/conversion-functions-transact-sql
       scope: support.function.conv.sql
-    - match: (?i)\b(encryptbykey|decryptbykey|encryptbypassphrase|decryptbypassphrase|key_id|key_guid|decryptbykeyautoasymkey|key_name|symkeyproperty|encryptbyasymkey|decryptbyasymkey|encryptbycert|decryptbycert|asymkeyproperty|asymkey_id|signbyasymkey|verifysignedbyasmkey|signbycert|verigysignedbycert|is_objectsigned|decryptbykeyautocert|hashbytes)\b
+    - match: |-
+        (?i)\b(encryptbykey|decryptbykey|encryptbypassphrase|decryptbypassphrase|key_id|key_guid
+        |decryptbykeyautoasymkey|key_name|symkeyproperty|encryptbyasymkey|decryptbyasymkey
+        |encryptbycert|decryptbycert|asymkeyproperty|asymkey_id|signbyasymkey|verifysignedbyasmkey
+        |signbycert|verigysignedbycert|is_objectsigned|decryptbykeyautocert|hashbytes)\b
       # Conversion Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/conversion-functions-transact-sql
       scope: support.function.crypto.sql
     - match: (?i)(@@\b(cursor_rows|fetch_status)|cursor_status)\b
@@ -282,7 +326,11 @@ contexts:
     - match: (?i)\b(datalength|ident_seed|ident_current|identity|ident_incr|sql_variant_property)\b
       # Data Type Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/data-type-functions-transact-sql
       scope: support.function.datatype.sql
-    - match: (?i)\b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_timestamp|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|datediff_big|dateadd|eomonth|switchoffset|todatetimeoffset|isdate)|@@\b(datefirst|language)\b
+    - match: |-
+        (?i)\b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_timestamp|getdate|getutcdate
+        |datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts
+        |datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|datediff_big|dateadd
+        |eomonth|switchoffset|todatetimeoffset|isdate)|@@\b(datefirst|language)\b
       # Date and time Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/date-and-time-data-types-and-functions-transact-sql
       scope: support.function.datetime.sql
     - match: (?i)\b(isjson|json_value|json_query|json_modify)\b
@@ -294,19 +342,35 @@ contexts:
     - match: (?i)\b(abs|degrees|rand|acos|exp|round|asin|floor|sign|atan|log|sin|atn2|log10|sqrt|ceiling|pi|square|cos|power|tan|cot|radians)\b
       # Mathematical Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/mathematical-functions-transact-sql
       scope: support.function.math.sql
-    - match: (?i)@@\b(procid)|\b(index_col|app_name|indexkey_property|applock_mode|indexproperty|applock_test|next value for|assemblyproperty|object_definition|col_length|object_id|col_name|object_name|columnproperty|object_schema_name|database_principal_id|objectproperty|databasepropertyex|objectpropertyex|db_id|original_db_name|db_name|parsename|file_id|schema_id|file_idex|schema_name|file_name|scope_identity|filegroup_id|serverproperty|filegroup_name|stats_date|filegroupproperty|type_id|fileproperty|type_name|fulltextcatalogproperty|typeproperty|fulltextserviceproperty)\b
+    - match: |-
+        (?i)@@\b(procid)|\b(index_col|app_name|indexkey_property|applock_mode|indexproperty|applock_test
+        |next value for|assemblyproperty|object_definition|col_length|object_id|col_name|object_name
+        |columnproperty|object_schema_name|database_principal_id|objectproperty|databasepropertyex
+        |objectpropertyex|db_id|original_db_name|db_name|parsename|file_id|schema_id|file_idex
+        |schema_name|file_name|scope_identity|filegroup_id|serverproperty|filegroup_name|stats_date
+        |filegroupproperty|type_id|fileproperty|type_name|fulltextcatalogproperty|typeproperty|fulltextserviceproperty)\b
       # Metadata Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/metadata-functions-transact-sql
       scope: support.function.metadata.sql
     - match: (?i)\b(publishingservername)\b
       # Replication Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/replication-functions-publishingservername
       scope: support.function.replication.sql
-    - match: (?i)\b(certencoded|pwdcompare|certprivatekey|pwdencrypt|current_user|schema_id|database_principal_id|schema_name|session_user|suser_id|suser_sid|has_perms_by_name|suser_sname|is_member|system_user|is_rolemember|suser_name|is_srvrolemember|user_id|original_login|user_name|permissions)\b
+    - match: |-
+        (?i)\b(certencoded|pwdcompare|certprivatekey|pwdencrypt|current_user|schema_id|database_principal_id
+        |schema_name|session_user|suser_id|suser_sid|has_perms_by_name|suser_sname|is_member|system_user
+        |is_rolemember|suser_name|is_srvrolemember|user_id|original_login|user_name|permissions)\b
       # Security Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/security-functions-transact-sql
       scope: support.function.security.sql
-    - match: (?i)\b(ascii|char|charindex|concat|concat_ws|difference|format|left|len|lower|ltrim|nchar|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b
+    - match: |-
+        (?i)\b(ascii|char|charindex|concat|concat_ws|difference|format|left|len|lower|ltrim|nchar
+        |patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg
+        |string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b
       # String Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/string-functions-transact-sql
       scope: support.function.string.sql
-    - match: (?i)\$\b(partition)|@@\b(error|identity|pack_received|rowcount|trancount)|\b(error_severity|error_state|formatmessage|getansinull|get_filestream_transaction_context|host_id|binary_checksum|host_name|checksum|isnull|connectionproperty|isnumeric|context_info|min_active_rowversion|current_request_id|newid|error_line|newsequentialid|error_message|rowcount_big|error_number|xact_state|error_procedure)\b
+    - match: |-
+        (?i)\$\b(partition)|@@\b(error|identity|pack_received|rowcount|trancount)|\b(error_severity
+        |error_state|formatmessage|getansinull|get_filestream_transaction_context|host_id|binary_checksum
+        |host_name|checksum|isnull|connectionproperty|isnumeric|context_info|min_active_rowversion
+        |current_request_id|newid|error_line|newsequentialid|error_message|rowcount_big|error_number|xact_state|error_procedure)\b
       # System Functions: https://docs.microsoft.com/en-us/sql/t-sql/functions/system-functions-transact-sql
       scope: support.function.system.sql
     - match: (?i)@@\b(connections|pack_received|cpu_busy|pack_sent|timeticks|idle|total_errors|io_busy|total_read|packet_errors|total_write)\b

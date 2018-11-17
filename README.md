@@ -35,15 +35,13 @@ Now, package includes [pyODBC](https://code.google.com/p/pyodbc/) (4.0.22) binar
 * Activity monitor (+refresh, +show query)
 * Long running queries (+refresh, +show query)
 
-## Install
+## Installation
+The easiest way to install this is with [Package Control](https://packagecontrol.io/packages/TSQLEasy).
 
-### Package Control
-The easiest way to install this is with [Package Control](http://wbond.net/sublime\_packages/package\_control).
-
- * If you just went and installed Package Control, you probably need to restart Sublime Text before doing this next bit.
- * Bring up the Command Palette (<kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> on OS X, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> on Linux/Windows).
- * Select "Package Control: Install Package" (it'll take a few seconds)
- * Select `TSQL Easy` when the list appears.
+* If you just went and installed [Package Control](https://packagecontrol.io/installation), you probably need to restart Sublime Text before doing this next bit.
+* Bring up the Command Palette (<kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> on OS X, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> on Linux/Windows).
+* Select **Package Control: Install Package** (it'll take a few seconds)
+* Select `TSQL Easy` when the list appears.
 
 Package Control will automatically keep `TSQL Easy` up to date with the latest version.
 

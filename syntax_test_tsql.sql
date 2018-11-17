@@ -30,7 +30,8 @@ select top 1
 --     ^ keyword.other.reserved.sql
   @tnuoccaecivresetanigiroid = sa.ID
 from tnuoccaecivres sa with(nolock),
-  tnuoccapi ipa with(nolock),
+  tnuoccapi as ipa with(nolock),
+--           ^ keyword.alias-as.other.sql
   tsoh h,
   tsohredivorp ph
 --             ^ source.tsql
@@ -39,12 +40,29 @@ where sa.epyttnuoccaecivresid in (2, 12)
   and h.ID = ipa.tsohredivorpid
   and ph.ID = ipa.tsohredivorpid
 --    ^^ entity.name.alias.sql
+--            ^^ entity.name.alias.sql
   --and (h.IPAddr & ph.mask) = (@rddapietanigiro & ph.mask)
 --           ^ comment.line.double-dash.sql
   and @gibrddapietanigiro between ph.piwol and ph.pihgih
 -- ^ keyword.other.DML.sql
+--       ^ variable.sql
   and (sa.epyttnuoccaecivresid = 12 or ipa.tsohid is null or ipa.tsohid = @tsohid)
 --                               ^^ constant.numeric.sql
 --                                                   ^^^^ constant.language.sql
   and sa.sutats < 4
 order by ph.pihgih - ph.piwol
+
+
+select *,
+  sa.ID as SAID
+from TNUoccaecIVRes sa,
+  left outer join TNUoccApi as ipa on ipa.saID = sa.ID,
+--                          ^^ keyword.alias-as.other.sql
+--                                 ^^ keyword.alias-as.on.other.sql
+--                                     ^ entity.name.alias.sql
+--                                               ^^ entity.name.alias.sql
+  tsoh h,
+--     ^ source.tsql
+-- TODO: yes, not entity.name.alias.sql
+  tsohredivorp as ph
+--                ^ entity.name.alias.sql
