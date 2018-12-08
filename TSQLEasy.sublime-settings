@@ -27,7 +27,7 @@
     "te_result_in_tab": false,
     "te_result_in_new_tab": false,
     "te_show_request_in_result": false,
-    "te_syntax": "Packages/TSQLEasy/TSQL.tmLanguage",
+    "te_syntax": "Packages/TSQLEasy/TSQL.sublime-syntax",
     "te_report_syntax": "Packages/Markdown/Markdown.tmLanguage",
     "te_activity_monitor_min_pid": 50, // show/hide system processes
 

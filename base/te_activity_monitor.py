@@ -62,6 +62,11 @@ class TsqlEasyActivityMonitorCommand(sublime_plugin.TextCommand):
         view.set_scratch(True)
         view.set_read_only(True)
 
+    def is_visible(self, *args):
+        if utils.ConDispatcher.is_sqlserver():
+            return True
+        return False
+
 
 class TsqlEasyActivityMonitorRefreshCommand(TsqlEasyActivityMonitorCommand):
 

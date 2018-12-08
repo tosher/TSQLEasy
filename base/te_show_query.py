@@ -58,7 +58,8 @@ class TsqlEasyShowQueryCommand(sublime_plugin.TextCommand):
             self.view.window().status_message('Error: Unknown mode')
 
         if row_id:
-            sqlcon = utils.te_get_connection()
+            # sqlcon = utils.te_get_connection()
+            sqlcon = utils.te_sql_info().get_connection()
             if sqlcon.sqlconnection is not None and sql_query:
                 sqlcon.dbexec(sql_query, (row_id,))
                 rows = sqlcon.sqldataset

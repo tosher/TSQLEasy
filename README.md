@@ -58,3 +58,8 @@ Activity monitor
 Long running queries
 
 ![SQL request](https://raw.githubusercontent.com/wiki/tosher/TSQLEasy/images/tsql_easy_scr3.png)
+
+## External dependencies
+
+* [Terminaltables](https://robpol86.github.io/terminaltables/index.html)
+* [Sqlparse](https://github.com/andialbrecht/sqlparse)

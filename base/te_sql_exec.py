@@ -17,7 +17,8 @@ class TsqlEasyExecSqlCommand(sublime_plugin.TextCommand):
     res_view = None
 
     def run(self, view, query=None):
-        self.sqlcon = utils.te_get_connection()
+        # self.sqlcon = utils.te_get_connection()
+        self.sqlcon = utils.te_sql_info().get_connection()
         self.view.set_line_endings('windows')
         if query:
             self.sql_query = query

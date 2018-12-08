@@ -27,8 +27,9 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
         if chars_before:
             word_cursor = ''.join([chars_before, word_cursor])
 
-        sqlreq = "exec sp_helptext @objname = ?"
-        sqlcon = utils.te_get_connection()
+        sqlreq = "exec sp_helptext @objname = ?"  # TODO: sqlsrv, postgres..
+        # sqlcon = utils.te_get_connection()
+        sqlcon = utils.te_sql_info().get_connection()
         if sqlcon.sqlconnection is not None:
             sqlcon.dbexec(sqlreq, [word_cursor])
             text = ''
@@ -52,3 +53,8 @@ class TsqlEasyOpenServerObjectCommand(sublime_plugin.TextCommand):
                         new_view.set_line_endings('unix')
         else:
             self.view.window().status_message('No connection to SQL server')
+
+    def is_visible(self, *args):
+        if utils.ConDispatcher.is_sqlserver():
+            return True
+        return False

@@ -51,10 +51,11 @@ class TsqlEasyEventDump(sublime_plugin.EventListener):
                 word_before = view.substr(view.word(pre_position))
                 position = pre_position
 
+            infocls = utils.te_sql_info()
             if word_before is not None:
                 if self._is_alias(word_before):
-                    return (utils.te_get_columns(position))
+                    return (infocls.get_columns(infocls.table_name_from_position(position)))
                 else:
-                    return (utils.te_get_tables(word_before))
+                    return (infocls.get_tables(word_before))
             else:
-                return (utils.te_get_tables())
+                return (infocls.get_tables())

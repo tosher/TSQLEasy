@@ -181,7 +181,8 @@ class TsqlEasyTableInfoCommand(sublime_plugin.TextCommand):
         if not self.res_view:
             self.res_view = sublime.active_window().create_output_panel(panel_name)
 
-        self.sqlcon = utils.te_get_connection()
+        # self.sqlcon = utils.te_get_connection()
+        self.sqlcon = utils.te_sql_info().get_connection()
         try:
             self.sqlcon.dbexec(self.DDL_CMD.format(table=table))
         except Exception as e:
@@ -216,3 +217,8 @@ class TsqlEasyTableInfoCommand(sublime_plugin.TextCommand):
             return '{null}'
         else:
             return str(value)
+
+    def is_visible(self, *args):
+        if utils.ConDispatcher.is_sqlserver():
+            return True
+        return False

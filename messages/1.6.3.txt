@@ -1,0 +1,4 @@
+TSQL Easy 1.6.3 changelog:
+
+* Internal reworks
+* Possibility to connect to PostgreSQL servers (beta)
