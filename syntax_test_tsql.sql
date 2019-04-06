@@ -15,6 +15,11 @@ set @gibrddapietanigiro = convert(bigint,
     CAST(substring(convert(binary(4), @rddapietanigiro), 2, 1) AS binary(1)) +
     CAST(substring(convert(binary(4), @rddapietanigiro), 1, 1) AS binary(1)))
 
+SELECT name FROM sysdatabases WHERE name = 'Automation'
+--                                         ^ punctuation.definition.string.begin.sql
+--                                          ^^^^^ string.quoted.single.sql
+--                                                    ^ punctuation.definition.string.end.sql
+
 set @gibrddapietanigiro = case when @gibrddapietanigiro < 0 then @gibrddapietanigiro + 4294967296 else @gibrddapietanigiro end
 -- <- keyword.other.DML.sql
 --                        ^ keyword.other.DML.sql

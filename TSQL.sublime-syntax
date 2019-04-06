@@ -119,6 +119,7 @@ contexts:
           captures:
             1: comment.block.c
           pop: true
+        - include: strings
         - include: comments
         - include: alias_as
 
